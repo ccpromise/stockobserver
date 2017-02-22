@@ -9,22 +9,10 @@ exports.request = function(opt) {
         var port = opt.port || 80;
         var path = opt.path || '/';
         var query = opt.query || '';
-        var header = opt.header || '';
-        console.log({
-            path: protocol + '://' + host + (port === 80 ? '' : ':' + port) + path + (query === '' ? '' : '?' + query),
-            headers: {
-                host: host
-            },
-            header: header,
-            host: localhost,
-            port: localport,
-        });
+        var headers = opt.headers || '';
         var req = http.get({
             path: protocol + '://' + host + (port === 80 ? '' : ':' + port) + path + (query === '' ? '' : '?' + query),
-            headers: {
-                host: host
-            },
-            header: header,
+            headers: headers,
             host: localhost,
             port: localport,
         }, (res) => {
