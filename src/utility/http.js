@@ -46,5 +46,5 @@ exports.request = function(opt) {
         });//*
         req.on('err', reject);
         req.end();
-    });
+    }).catch((err) => { console.log('Err in connecting to host: ', err.message)});
 };//(opt).then((data) => { console.log(data);}).catch(err => {console.log('hehe')});

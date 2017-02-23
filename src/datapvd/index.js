@@ -1,5 +1,7 @@
 
-var getClosePriceofOne = require('../datasrc/wmcloud').getClosePriceofOne;
+var getClosePrice = require('../datasrc/wmcloud').getClosePrice;
+
+exports.MADataPvd = MADataPvd;
 
 function MADataPvd(stock, N) {
     this.historyClosePrice = {};
@@ -7,11 +9,13 @@ function MADataPvd(stock, N) {
     this.maxTs = 0;
     this.minTs = 0;
     this.N = N;
-    this.promise = getClosePriceofOne(stock['secID']).then((data) => {
+    this.promise = getClosePrice(stock['secID']).then((data) => {
         // {
         //    '17167': {e : 9.48}
         // }
         var idx = 0;
+        // suppose for in iterate the properties in ascending order......
+        // if not, for each ts, we had to --ts until find a valid ts as the trade date before it.
         for(ts in data) {
             this.historyTs.push(ts);
             data[ts].idx = idx;
@@ -43,13 +47,11 @@ MADataPvd.prototype.get = function(datets) {
                     var idx = data[datets].idx;
                     // The data on these ts should be calculated:
                     // this.historyTs[idx]],this.historyTs[idx-1], ..., this.historyTs[idx-N+1]
-                    var i = 0;
-                    while(i < this.N) {
-                        sum += data[this.historyTs[idx]].e;
-                        idx --;
-                        i ++;
+                    var i = idx;
+                    while(i > idx - this.N) {
+                        sum += data[this.historyTs[i--]].e;
                     }
-                    resolve(res/this.N);
+                    resolve(sum/this.N);
                 }
             }
             else {
@@ -71,5 +73,6 @@ MADataPvd.prototype.hasDef = function(datets) {
     return datets in this.historyClosePrice && datets >= this.maxTs && datets <= this.minTs;
 }
 
+//test
 var x = new MADataPvd({ 'secID': '000001.XSHE'}, 5);
 x.get(14788).then((res) => console.log(res)).catch(err => console.log(err.message));

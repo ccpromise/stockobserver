@@ -1,4 +1,5 @@
 var http = require('../../utility').http;
+var parseObjArr = require('../../utility').parse.parseObjArr;
 var fields = ['CODE', 'OPEN', 'PRICE', 'HIGH', 'LOW', 'HS', 'VOLUME', 'YESTCLOSE'];
 var count = 4000;
 var opt = {
@@ -11,23 +12,12 @@ exports.getStockData = function () {
     return new Promise((resolve, reject) => {
         http.request(opt).then((obj) => {
             var data = JSON.parse(obj.toString());
-            var stock = {};
-            data.list.forEach((item) => {
-                stock[item.CODE] = {
-                    'start': item.OPEN,
-                    'end': item.PRICE,
-                    'high': item.HIGH,
-                    'low': item.LOW,
-                    'exchange': item.HS,
-                    'volumn': item.VOLUME,
-                    'preclose': item.YESTCLOSE,
-                    'time': data.time
-                };
-            });
+            var stockData = parseObjArr(data.list, fields, ['start', 'end', 'high', 'low', 'exchange', 'volumn', 'preclose']);
             resolve({
-                stock: stock,
+                stock: stockData,
+                time: data.time,
                 count: data.list.length
             });
         }).catch(reject);
     });
-};//().then((data) => { console.log(data); }).catch(err => console.log(err));
+}().then((data) => { console.log(data); }).catch(err => console.log(err));
