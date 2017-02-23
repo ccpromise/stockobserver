@@ -9,7 +9,7 @@ var queryPattern = {
     tradeDate: ''
 }
 
-exports.getHistoryData = function(secID) {
+exports.getHistoryDataofOne = function(secID) {
     var query = queryPattern;
     query.secID = secID;
     return getMktEqud(query).then((obj) => {
@@ -35,12 +35,9 @@ exports.getTradeDateDataofAll = function(tradeDate) {
     var query = queryPattern;
     query.tradeDate = tradeDate;
     return getMktEqud(query).then((obj) => {
-        var data = obj.data;
-        console.log(obj);
         var res = {};
-        data.forEach((item) => {
-            var secID = item.secID;
-            data[secID] = {
+        obj.data.forEach((item) => {
+            res[item.secID] = {
                 's': item.openPrice,
                 'e': item.closePrice,
                 'h': item.highestPrice,
@@ -49,6 +46,6 @@ exports.getTradeDateDataofAll = function(tradeDate) {
                 'v': item.turnoverVol
             }
         });
-        return data;
+        return res;
     });
-};//('20150517').then((data) => { console.log(data); }).catch((err) => { console.log(err);});
+};//('20150518').then((data) => { console.log(data); }).catch((err) => { console.log(err);});

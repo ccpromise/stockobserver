@@ -14,16 +14,9 @@ exports.getMktEquad = function(query) {
     return new Promise((resolve, reject) => {
         opt.query = 'field='+query.field+'&beginDate='+query.beginDate+'&endDate='+query.endDate+'&secID='+query.secID+'&ticker='+query.ticker+'&tradeDate='+query.tradeDate;
         http.request(opt).then((data) => {
-            try{
-                data = JSON.parse(data);
-                if(data.retCode !== 1) {
-                    reject(data.retMsg);
-                }
-                else resolve(data);
-            }
-            catch(err) {
-                reject(err);
-            }
+            data = JSON.parse(data);
+            if(data.retCode !== 1) reject(data.retMsg);
+            else resolve(data);
         }).catch(reject);
     });
 };

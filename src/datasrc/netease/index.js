@@ -12,11 +12,9 @@ exports.getStockData = function() {
     return new Promise((resolve, reject) => {
         http.request(opt).then((obj) => {
             var data = JSON.parse(obj);
-            var time = data.time;
             var stock = {};
             data.list.forEach((item) => {
-                var code = item.CODE;
-                stock[code] = {
+                stock[item.CODE] = {
                     'start': item.OPEN,
                     'end': item.PRICE,
                     'high': item.HIGH,
@@ -24,7 +22,7 @@ exports.getStockData = function() {
                     'exchange': item.HS,
                     'volumn': item.VOLUME,
                     'preclose': item.YESTCLOSE,
-                    'time': time
+                    'time': data.time
                 };
             });
             resolve({
@@ -33,4 +31,4 @@ exports.getStockData = function() {
             });
         }).catch(reject);
     });
-};//().then((data) => { console.log(data);}).catch(err => console.log(err));
+}().then((data) => { console.log(data);}).catch(err => console.log(err));
