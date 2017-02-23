@@ -11,12 +11,12 @@ var queryPattern = {
 
 exports.getHistoryDataofOne = function(secID) {
     var query = queryPattern;
+    var fields = ['openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol', 'tradeDate'];
     query.secID = secID;
+    query.field = fields.join('%2C');
     return getMktEqud(query).then((obj) => {
-        var data = obj.data;
         var res = {};
-        console.log(obj);
-        data.forEach((item) => {
+        obj.data.forEach((item) => {
             var date = time.convertToYYYYMMDD(item.tradeDate);
             res[date] = {
                 's': item.openPrice,
@@ -29,11 +29,13 @@ exports.getHistoryDataofOne = function(secID) {
         });
         return res;
     });
-};//('000001.XSHE').then((data) => {console.log(data);}).catch((err) => { console.log(err); });
+};//('000001.XSHE').then((data) => { console.log(data); }).catch((err) => { console.log(err); });
 
 exports.getTradeDateDataofAll = function(tradeDate) {
     var query = queryPattern;
+    var fields = ['openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol', 'secID'];
     query.tradeDate = tradeDate;
+    query.field = fields.join('%2C');
     return getMktEqud(query).then((obj) => {
         var res = {};
         obj.data.forEach((item) => {
