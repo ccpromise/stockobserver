@@ -4,13 +4,13 @@ var count = 4000;
 var opt = {
     host: 'quotes.money.163.com',
     path: '/hs/service/diyrank.php',
-    query: 'host=http%3A%2F%2Fquotes.money.163.com%2Fhs%2Fservice%2Fdiyrank.php&page=0&query=STYPE%3AEQA&fields='+fields.join('%2C')+'&count='+count+'&type=query',
+    query: 'page=0&query=STYPE:EQA&fields=' + fields.join(',') + '&count=' + count + '&type=query',
     headers: {
         host: 'quotes.money.163.com'
     }
 }
 
-exports.getStockData = function() {
+exports.getStockData = function () {
     return new Promise((resolve, reject) => {
         http.request(opt).then((obj) => {
             var data = JSON.parse(obj);
@@ -33,4 +33,4 @@ exports.getStockData = function() {
             });
         }).catch(reject);
     });
-}().then((data) => { console.log(data);}).catch(err => console.log(err));
+} ().then((data) => { console.log(data); }).catch(err => console.log(err));
