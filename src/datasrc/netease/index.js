@@ -5,15 +5,12 @@ var opt = {
     host: 'quotes.money.163.com',
     path: '/hs/service/diyrank.php',
     query: 'page=0&query=STYPE:EQA&fields=' + fields.join(',') + '&count=' + count + '&type=query',
-    headers: {
-        host: 'quotes.money.163.com'
-    }
 }
 
 exports.getStockData = function () {
     return new Promise((resolve, reject) => {
         http.request(opt).then((obj) => {
-            var data = JSON.parse(obj);
+            var data = JSON.parse(obj.toString());
             var stock = {};
             data.list.forEach((item) => {
                 stock[item.CODE] = {
@@ -33,4 +30,4 @@ exports.getStockData = function () {
             });
         }).catch(reject);
     });
-} ().then((data) => { console.log(data); }).catch(err => console.log(err));
+};//().then((data) => { console.log(data); }).catch(err => console.log(err));

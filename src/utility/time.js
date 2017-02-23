@@ -1,6 +1,13 @@
+var moment = require('moment');
 
-exports.convertToYYYYMMDD = function(date) {
-    if(new RegExp(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/).test(date))
-        return date.slice(0,4).concat(date.slice(5,7)).concat(date.slice(8));
-    return '';
-};
+exports.formatDate = function(date, format) {
+    return moment(date).format(format);
+}
+
+exports.getDateTs = function(date) {
+    var date = moment(date);
+    var y = date.format('YYYY');
+    var m = date.format('MM');
+    var d = date.format('DD');
+    return Date.UTC(y, m, d) / (60*60*24*1000);;
+}
