@@ -1,6 +1,6 @@
 var http = require('../../utility').http;
-var parseObjArr = require('../../utility').parse.parseObjArr;
 var fields = ['CODE', 'OPEN', 'PRICE', 'HIGH', 'LOW', 'HS', 'VOLUME', 'YESTCLOSE'];
+var property = ['start', 'end', 'high', 'low', 'exchange', 'volumn', 'preclose']
 var count = 4000;
 var opt = {
     host: 'quotes.money.163.com',
@@ -11,13 +11,18 @@ var opt = {
 exports.getStockData = function () {
     return new Promise((resolve, reject) => {
         http.request(opt).then((obj) => {
-            var data = JSON.parse(obj.toString());
-            var stockData = parseObjArr(data.list, fields, ['start', 'end', 'high', 'low', 'exchange', 'volumn', 'preclose']);
+            var res = JSON.parse(obj.toString());
+            var stock = res.list.reduce((pre, cur) => {
+                pre[cur['CODE']] = {};
+                for(var i = 0; i < 7; i++)
+                    pre[cur['CODE']][property[i]] = cur[fields[i+1]];
+                return pre;
+            }, {});
             resolve({
-                stock: stockData,
-                time: data.time,
-                count: data.list.length
+                stock: stock,
+                time: res.time,
+                count: res.list.length
             });
         }).catch(reject);
     });
-}().then((data) => { console.log(data); }).catch(err => console.log(err));
+};

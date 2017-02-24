@@ -11,3 +11,7 @@ exports.getDateTs = function(date) {
     var d = date.format('DD');
     return Date.UTC(y, m, d) / (60*60*24*1000);;
 }
+
+exports.now = function() {
+    return moment();
+}

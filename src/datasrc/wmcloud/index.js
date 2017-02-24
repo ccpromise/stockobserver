@@ -1,6 +1,6 @@
 var getMktEquad = require('./getMktEquad').getMktEquad;
 var time = require('../../utility').time;
-var parseObjArr = require('../../utility').parse.parseObjArr;
+var clone = require('../../utility').clone;
 var queryPattern = {
     field: '',
     beginDate: '',
@@ -9,37 +9,37 @@ var queryPattern = {
     ticker: '',
     tradeDate: ''
 };
+var property = ['o', 'e', 'h', 'l', 'x', 'v'];
 
 exports.getHistoryData = function(secID) {
-    var query = queryPattern;
+    var query = clone(queryPattern);
     var fields = ['tradeDate', 'openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol'];
     query.secID = secID;
-    query.field = fields.join('%2C');
+    query.field = fields.join(',');
     return getMktEquad(query).then((obj) => {
-        return  parseObjArr(obj.data, fields, ['s', 'e', 'h', 'l', 'x', 'v'], (x) => { return time.formatDate(x, 'YYYYMMDD')});
-        // return: {formated_tradeDate: {s: , e: , h: , l: , x: , v: }}
+        if(obj.retCode != 1) return obj.retMsg;
+        return obj.data.reduce((pre, cur) => {
+            var date = time.formatDate(cur['tradeDate'], 'YYYYMMDD');
+            pre[date] = {};
+            for(var i = 0; i < 6; i++)
+                pre[date][property[i]] = cur[fields[i+1]];
+            return pre;
+        }, {});
     });
-};//('000001.XSHE').then((data) => { console.log('done!'); }).catch((err) => { console.log(err); });
+};
 
 exports.getTradeDateData = function(tradeDate) {
-    var query = queryPattern;
+    var query = clone(queryPattern);
     var fields = ['secID', 'openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol'];
     query.tradeDate = tradeDate;
-    query.field = fields.join('%2C');
+    query.field = fields.join(',');
     return getMktEquad(query).then((obj) => {
-        return parseObjArr(obj.data, fields, ['s', 'e', 'h', 'l', 'x', 'v']);
-        // return: {secID: {s:,e:,h:,l:,x:,v}};
+        if(obj.retCode != 1) return obj.retMsg;
+        return obj.data.reduce((pre, cur) => {
+            pre[cur['secID']] = {};
+            for(var i = 0; i < 6; i++)
+                pre[cur['secID']][property[i]] = cur[fields[i+1]];
+            return pre;
+        }, {});
     });
-};//('20150518').then((data) => { console.log('done!'); }).catch((err) => { console.log(err);});
-
-
-exports.getClosePrice = function(secID) {
-    var query = queryPattern;
-    var fields = ['tradeDate', 'closePrice'];
-    query.secID = secID;
-    query.field = fields.join('%2C');
-    return getMktEquad(query).then((obj) => {
-        return parseObjArr(obj.data, fields, ['e'], (x) => { return time.getDateTs(x); });
-        // return: { dateTs: {'e':}}
-    })
-};//('000001.XSHE').then(data => {console.log(data);}).catch(err => console.log(err));
+};

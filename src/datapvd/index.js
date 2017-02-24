@@ -1,78 +1,45 @@
 
-var getClosePrice = require('../datasrc/wmcloud').getClosePrice;
+var time = require('../utility').time;
 
 exports.MADataPvd = MADataPvd;
 
 function MADataPvd(stock, N) {
-    this.historyClosePrice = {};
-    this.historyTs = [];
-    this.maxTs = 0;
-    this.minTs = 0;
-    this.N = N;
-    this.promise = getClosePrice(stock['secID']).then((data) => {
-        // {
-        //    '17167': {e : 9.48}
-        // }
-        var idx = 0;
-        // suppose for in iterate the properties in ascending order......
-        // if not, for each ts, we had to --ts until find a valid ts as the trade date before it.
-        for(ts in data) {
-            this.historyTs.push(ts);
-            data[ts].idx = idx;
-            idx += 1;
+    // stock: {
+    //   ts: {e: },
+    // }
+    // when n is positive, get the next n days from ts.
+    // when n is negative, get the previous -n days from ts.
+    var getNearTs = function(ts, n) {
+        var inc = n > 0 ? 1 : -1;
+        while(ts > minTs && ts < maxTs && n != 0) {
+            ts += inc;
+            while(!(ts in stock)) ts += inc;
+            n -= inc;
         }
-        var totalTs = this.historyTs.length;
-        this.maxTs = totalTs >= N ? this.historyTs[totalTs-1] : -1;
-        this.minTs = totalTs >= N ? this.historyTs[N-1] : -1;
-        this.historyClosePrice = data;
-        // this.historyClosePrice: {
-        //   '17167': {e: , idx: 23},
-        //   '17168': {e: , idx: 24},
-        // }
-        // ts.idx is the index of ts in this.historyTs
-        // this.historyTs: [...., '17167', '17168', ...]
-    });
-}
+        return n == 0 ? ts : -1;
+    }
 
-MADataPvd.prototype.get = function(datets) {
-    return new Promise((resolve, reject) => {
-        this.promise.then(() => {
-            var data = this.historyClosePrice;
-            if(datets in data) {
-                if(datets < this.minTs || datets > this.maxTs) {
-                    reject('datets ' + datets + ' is invalid');
-                }
-                else {
-                    var sum = 0;
-                    var idx = data[datets].idx;
-                    // The data on these ts should be calculated:
-                    // this.historyTs[idx]],this.historyTs[idx-1], ..., this.historyTs[idx-N+1]
-                    var i = idx;
-                    while(i > idx - this.N) {
-                        sum += data[this.historyTs[i--]].e;
-                    }
-                    resolve(sum/this.N);
-                }
-            }
-            else {
-                reject('No trade data on datets ' + datets);
-            }
-        })
-    })
-}
+    var minTs = time.getDateTs(time.now());
+    var maxTs = 0;
+    for(ts in stock) {
+        minTs = Math.min(minTs, ts);
+        maxTs = Math.max(maxTs, ts);
+    }
 
-MADataPvd.prototype.maxTs = function(){
-    return this.maxTs;
+    this.minTs = getNearTs(minTs, N-1);
+    this.maxTs = minTs == -1 ? -1 : maxTs;
+    this.hasDef = function(ts) {
+        return ts in stock && ts >= this.minTs && ts <= this.maxTs;
+    }
+    this.get = function(ts) {
+        if(!this.hasDef(ts)) return Promise.reject('invalid ts');
+        var sum = 0;
+        var n = N;
+        while(n > 0) {
+            sum += stock[ts]['e'];
+            ts = getNearTs(ts, -1);
+            n--;
+        }
+        return Promise.resolve(sum/N);
+    }
 }
-
-MADataPvd.prototype.minTs = function(){
-    return this.minTs;
-}
-
-MADataPvd.prototype.hasDef = function(datets) {
-    return datets in this.historyClosePrice && datets >= this.maxTs && datets <= this.minTs;
-}
-
-//test
-var x = new MADataPvd({ 'secID': '000001.XSHE'}, 5);
-x.get(14788).then((res) => console.log(res)).catch(err => console.log(err.message));
