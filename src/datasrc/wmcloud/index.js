@@ -1,6 +1,7 @@
 var getMktEquad = require('./getMktEquad').getMktEquad;
-var time = require('../../utility').time;
-var clone = require('../../utility').clone;
+var utility = require('../../utility');
+var time = utility.time;
+var clone = utility.clone;
 var queryPattern = {
     field: '',
     beginDate: '',
