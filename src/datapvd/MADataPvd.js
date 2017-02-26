@@ -1,18 +1,17 @@
 
-exports.MADataPvd = MADataPvd;
+module.exports = MADataPvd;
 
-var HistoryDataPvd = require('./HistoryDataPvd').HistoryDataPvd;
-
-MADataPvd.prototype.getNearTs = HistoryDataPvd.prototype.getNearTs;
+var HistoryDataPvd = require('./HistoryDataPvd');
+var statistics = require('../utility').statistics;
 
 function MADataPvd(dataPvd, N) {
     HistoryDataPvd.call(this, dataPvd, N);
 }
 
-MADataPvd.prototype.hasDef = HistoryDataPvd.prototype.hasDef;
+MADataPvd.prototype = Object.create(HistoryDataPvd.prototype);
 
 MADataPvd.prototype.get = function(ts) {
-    if(!this.hasDef(ts)) return 'invalid ts';
+    if(!this.hasDef(ts)) throw 'invalid ts';
     var data = HistoryDataPvd.prototype.get.call(this, ts);
-    return data.reduce((pre, cur) => { return pre+cur; }) / this.N;
+    return statistics.mean(data);
 }

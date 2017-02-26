@@ -1,36 +1,26 @@
 
-exports.HistoryDataPvd = HistoryDataPvd;
-
-HistoryDataPvd.prototype.getNearTs = function(ts, n) {
-    var inc = n > 0 ? 1 : -1;
-    while(ts+inc >= this.realMinTs && ts+inc <= this.realMaxTs && n != 0) {
-        ts += inc;
-        while(!this.dataPvd.hasDef(ts)) ts += inc;
-        n -= inc;
-    }
-    return n == 0 ? ts : -1;
-}
+var DataPvd = require('./DataPvd');
+module.exports = HistoryDataPvd;
 
 function HistoryDataPvd(dataPvd, N) {
     this.dataPvd = dataPvd;
+    this.stock = dataPvd.stock;
     this.N = N;
     this.realMinTs = dataPvd.minTs;
     this.realMaxTs = dataPvd.maxTs;
-    this.minTs = this.getNearTs(this.realMinTs, N-1);
+    this.minTs =  dataPvd.forwardDateTs(this.realMinTs, N-1);
     this.maxTs = this.minTs == -1 ? -1 : this.realMaxTs;
 }
 
-HistoryDataPvd.prototype.hasDef = function(ts) {
-    return this.dataPvd.hasDef(ts);
-}
+HistoryDataPvd.prototype = Object.create(DataPvd.prototype);
 
 HistoryDataPvd.prototype.get = function(ts) {
-    if(!this.hasDef(ts)) return 'invalid ts';
+    if(!this.hasDef(ts)) throw 'invalid ts';
     var data = [];
     var n = this.N;
     while(n > 0) {
         data.push(this.dataPvd.get(ts));
-        ts = this.getNearTs(ts, -1);
+        ts = this.dataPvd.backwardDateTs(ts, 1);
         n--;
     }
     return data;

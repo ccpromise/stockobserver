@@ -6,7 +6,8 @@ var opt = {
     path: '/data/v1/api/market/getMktEqud.json',
     headers: {
         'Authorization': 'Bearer ' + access_token,
-    }
+    },
+    useHttps: true
 }
 
 exports.getMktEquad = function(query) {
@@ -14,7 +15,7 @@ exports.getMktEquad = function(query) {
         var option = utility.clone(opt);
         option.query = 'field='+query.field+'&beginDate='+query.beginDate+'&endDate='+query.endDate+'&secID='+query.secID+'&ticker='+query.ticker+'&tradeDate='+query.tradeDate;
         //wmcloud is an https api
-        utility.http.request(option, true).then((data) => {
+        utility.http.request(option).then((data) => {
             data = JSON.parse(data.toString());
             resolve(data);
         }).catch(reject);
