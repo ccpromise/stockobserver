@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ccpromise/stockobserver#readme",
   "dependencies": {
+    "js-cache": "^1.0.2",
     "moment": "^2.17.1"
   }
 }

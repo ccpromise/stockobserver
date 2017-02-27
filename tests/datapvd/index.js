@@ -39,9 +39,9 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
 */
     console.log('test DataPvd version....');
 
-    dataPvd = require('../../src/datapvd');
+    var dataPvd = require('../../src/datapvd2');
+    var strategy = require('../../src/strategy');
     var EndDataPvd = dataPvd.EndDataPvd;
-    var HistoryDataPvd = dataPvd.HistoryDataPvd;
     var StdDataPvd = dataPvd.StdDataPvd;
     var MADataPvd = dataPvd.MADataPvd;
     var BollDataPvd = dataPvd.BollDataPvd;
@@ -49,6 +49,10 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var SubDataPvd = dataPvd.SubDataPvd;
     var ConstDataPvd = dataPvd.ConstDataPvd;
     var OffsetDataPvd = dataPvd.OffsetDataPvd;
+    var CachedMADataPvd = dataPvd.CachedMADataPvd;
+    var CachedBollDataPvd = dataPvd.CachedBollDataPvd;
+    var CachedMACDDataPvd = dataPvd.CachedMACDDataPvd;
+    var CachedEMADataPvd = dataPvd.CachedEMADataPvd;
 
     var end = new EndDataPvd(data);
 
@@ -65,6 +69,14 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var constant = new ConstDataPvd('infinity');
 
     var offset = new OffsetDataPvd(end, -4);
+
+    var cma = new CachedMADataPvd(end, 5);
+
+    var cboll = new CachedBollDataPvd(end, 5);
+
+    var cmacd = new CachedMACDDataPvd(end);
+
+    var cema = new CachedEMADataPvd(end, 12);
 
 
     var x = [end.get(17248), end.get(17247), end.get(17246), end.get(17245), end.get(17242)];
@@ -84,6 +96,21 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     assert.equal(constant.get(1323432), 'infinity');
     assert.equal(offset.get(17248), end.get(17242));
 
+    assert.equal(cma.get(17241), ma.get(17241));
+    assert.equal(cboll.get(17241).toString(), boll.get(17241).toString());
+
+    var price = end.get(17242);
+    var yestEma = cema.get(17241);
+    var todayEma = cema.get(17242);
+    assert.equal(2/13*price+11/13*yestEma, todayEma);
+
+    var MACross = strategy.MACross;
+    var x = MACross(end);
+    var profit = 0;
+    x.forEach(trans => profit += (trans['收益比例'] === undefined ? 0 : trans['收益比例']))
+    console.log(x);
+    console.log('total profit: ', profit);
 
     console.log('done!');
+    console.log('waiting for cache to clear....');
 });
