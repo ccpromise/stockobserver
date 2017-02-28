@@ -9,7 +9,7 @@ function StdDataPvd(pvd, N) {
 StdDataPvd.prototype = Object.create(StatDataPvd.prototype);
 
 StdDataPvd.prototype.get = function(ts) {
-    if(!this.hasDef(ts)) throw 'invalid ts';
+    if(!this.hasDef(ts)) throw new Error('invalid its');
     var data = [];
     var n = this.N;
     while(n > 0) {

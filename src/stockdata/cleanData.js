@@ -50,8 +50,8 @@ function cleanData(stockData) {
     stockData.data = data;
     stockData.minTs = minTs;
     stockData.maxTs = maxTs;
-    delete stockData[minDay];
-    delete stockData[maxDay];
+    delete stockData['minDay'];
+    delete stockData['maxDay'];
 }
 
 module.exports = cleanData;
