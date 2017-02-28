@@ -4,42 +4,14 @@ var statistics = require('../../src/utility').statistics;
 
 fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     data = JSON.parse(data);
-    /*
-    console.log('test EndDataPvd version.....');
+    var stock = {};
+    stock['data'] = data;
+    stock['minDay'] = 7792;
+    stock['maxDay'] = 17249;
 
-    var dataPvd = require('../../src/datapvd/__EndDataVersion.js');
-    var EndDataPvd = dataPvd.EndDataPvd;
-    var HistoryEndDataPvd = dataPvd.HistoryEndDataPvd;
-    var MADataPvd = dataPvd.MADataPvd;
-    var StdDataPvd = dataPvd.StdDataPvd;
-    var BollDataPvd = dataPvd.BollDataPvd;
-
-    var end = new EndDataPvd(data);
-    console.log(end.minTs);
-    console.log(end.maxTs);
-    console.log(end.get(17248));
-    console.log(end.get(17247));
-    console.log(end.get(17246));
-    console.log(end.get(17245));
-    console.log(end.get(17242));
-
-    var hist = new HistoryEndDataPvd(data, 5);
-    console.log(ma.minTs);
-    console.log(ma.maxTs);
-    console.log(ma.get(17248));
-
-    var ma = new MADataPvd(data, 5);
-    console.log(ma.get(17248));
-
-    var std = new StdDataPvd(data, 5);
-    console.log(std.get(17248));
-
-    var boll = new BollDataPvd(data, 5);
-    console.log(boll.get(17248));
-*/
     console.log('test DataPvd version....');
 
-    var dataPvd = require('../../src/datapvd2');
+    var dataPvd = require('../../src/datapvd');
     var strategy = require('../../src/strategy');
     var EndDataPvd = dataPvd.EndDataPvd;
     var StdDataPvd = dataPvd.StdDataPvd;
@@ -49,12 +21,12 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var SubDataPvd = dataPvd.SubDataPvd;
     var ConstDataPvd = dataPvd.ConstDataPvd;
     var OffsetDataPvd = dataPvd.OffsetDataPvd;
-    var CachedMADataPvd = dataPvd.CachedMADataPvd;
-    var CachedBollDataPvd = dataPvd.CachedBollDataPvd;
-    var CachedMACDDataPvd = dataPvd.CachedMACDDataPvd;
-    var CachedEMADataPvd = dataPvd.CachedEMADataPvd;
+    var MADataPvd = dataPvd.MADataPvd;
+    var BollDataPvd = dataPvd.BollDataPvd;
+    var MACDDataPvd = dataPvd.MACDDataPvd;
+    var EMADataPvd = dataPvd.EMADataPvd;
 
-    var end = new EndDataPvd(data);
+    var end = new EndDataPvd(stock);
 
     var ma = new MADataPvd(end, 5);
 
@@ -64,19 +36,21 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
 
     var boll = new BollDataPvd(end, 5);
 
-    var add = new AddDataPvd(end, ma);
+    var x = [end.get(17248), end.get(17247), end.get(17246), end.get(17245), end.get(17242)];
+
+    var add = new AddDataPvd([end, ma], 1);
 
     var constant = new ConstDataPvd('infinity');
 
     var offset = new OffsetDataPvd(end, -4);
 
-    var cma = new CachedMADataPvd(end, 5);
+    var cma = new MADataPvd(end, 5);
 
-    var cboll = new CachedBollDataPvd(end, 5);
+    var cboll = new BollDataPvd(end, 5);
 
-    var cmacd = new CachedMACDDataPvd(end);
+    var cmacd = new MACDDataPvd(end);
 
-    var cema = new CachedEMADataPvd(end, 12);
+    var cema = new EMADataPvd(end, 12);
 
 
     var x = [end.get(17248), end.get(17247), end.get(17246), end.get(17245), end.get(17242)];
@@ -107,10 +81,12 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var MACross = strategy.MACross;
     var x = MACross(end);
     var profit = 0;
-    x.forEach(trans => profit += (trans['收益比例'] === undefined ? 0 : trans['收益比例']))
+    x.forEach(trans => profit += (trans['收益比例'] === "" ? 0 : trans['收益比例']))
     console.log(x);
     console.log('total profit: ', profit);
 
+    var csv = require('../../src/utility').file.writeToCSV;
+    csv('./data.csv', x);
     console.log('done!');
     console.log('waiting for cache to clear....');
 });
