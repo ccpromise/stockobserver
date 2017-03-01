@@ -8,7 +8,7 @@ function EndDataPvd(stock) {
 EndDataPvd.prototype = Object.create(StockDataPvd.prototype);
 
 EndDataPvd.prototype.get = function(ts) {
-    if(!this.hasDef(ts)) throw new Error('invalid ts'+ts);
+    if(!this.hasDef(ts)) throw new Error('invalid ts');
     return this.stock[ts]['e'];
 }
 

@@ -12,3 +12,4 @@ exports.MulDataPvd = require('./combinedDataPvd/MulDataPvd');
 exports.OffsetDataPvd = require('./basicDataPvd/OffsetDataPvd');
 exports.StdDataPvd = require('./statDataPvd/StdDataPvd');
 exports.SubDataPvd = require('./combinedDataPvd/SubDataPvd');
+exports.DataPvd = require('./basicDataPvd/DataPvd')

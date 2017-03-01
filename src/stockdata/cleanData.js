@@ -33,7 +33,6 @@ function cleanData(stockData) {
             }
         }
     }
-
     wrongTs.forEach((ts) => {
         delete data[ts];
     });

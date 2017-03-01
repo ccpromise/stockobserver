@@ -6,8 +6,8 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     data = JSON.parse(data);
     var stock = {};
     stock['data'] = data;
-    stock['minDay'] = 7792;
-    stock['maxDay'] = 17249;
+    stock['minTs'] = 7792;
+    stock['maxTs'] = 17249;
 
     console.log('test DataPvd version....');
 
@@ -48,10 +48,9 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
 
     var cboll = new BollDataPvd(end, 5);
 
-    var cmacd = new MACDDataPvd(end);
+    var cmacd = new MACDDataPvd(end, [12, 26, 9]);
 
     var cema = new EMADataPvd(end, 12);
-
 
     var x = [end.get(17248), end.get(17247), end.get(17246), end.get(17245), end.get(17242)];
     var y = [ma.get(17248), ma.get(17247), ma.get(17246), ma.get(17245), ma.get(17242)];
@@ -82,7 +81,6 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var x = MACross(end);
     var profit = 0;
     x.forEach(trans => profit += (trans['收益比例'] === "" ? 0 : trans['收益比例']))
-    console.log(x);
     console.log('total profit: ', profit);
 
     var csv = require('../../src/utility').file.writeToCSV;

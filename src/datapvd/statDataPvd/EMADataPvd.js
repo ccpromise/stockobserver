@@ -20,15 +20,26 @@ EMADataPvd.prototype._calculate = function(ts) {
     if(!this.hasDef(ts)) throw new Error('invalid ts');
     var ema = this.pvd.get(this.minTs);
     var i = this.pvd.forwardDateTs(this.minTs, 1);
+
+    if(this._cache.size() != 0) {
+        var lo = i;
+        var hi = ts;
+        while(lo <= hi) {
+            var mid = this.pvd.forwardDateTs(Math.floor((lo+hi)/2), 0);
+            if(this._cache.has(mid)){
+                lo = this.pvd.forwardDateTs(mid, 1);
+            }
+            else {
+                hi = this.pvd.backwardDateTs(mid, 1);
+            }
+        }
+        ema = this._cache.get(this.pvd.backwardDateTs(lo, 1));
+        i = lo;
+    }
+
     while(this.pvd.hasDef(i) && i <= ts) {
-        var cachedData = this._getCached(i);
-        if(cachedData !== undefined) {
-            ema = cachedData;
-        }
-        else {
-            ema = this.smoothnessIndex * this.pvd.get(i) + (1 - this.smoothnessIndex) * ema;
-            this._cache.set(i, ema);
-        }
+        ema = this.smoothnessIndex * this.pvd.get(i) + (1 - this.smoothnessIndex) * ema;
+        this._cache.set(i, ema);
         i = this.pvd.forwardDateTs(i, 1);
     }
     return ema;

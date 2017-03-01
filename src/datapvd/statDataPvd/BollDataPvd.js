@@ -1,6 +1,6 @@
 
 var StatDataPvd = require('./StatDataPvd');
-var Statistics = require('../../utility').statistics;
+var Statistics = require('../../utility/statistics');
 var k = require('../../config').bollingerK;
 
 function BollDataPvd(pvd, N) {

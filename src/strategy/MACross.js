@@ -22,18 +22,19 @@ function MACross(endDatapvd) {
             });
         }
         else if(yest > 0 && today < 0 && transactions.length != 0) {
-            var buyPrice = transactions[transactions.length-1]['买入价格'];
+            var last = transactions.length-1;
+            var buyPrice = transactions[last]['买入价格'];
             var sellPrice = endDatapvd.get(ts);
             var profit = (sellPrice - buyPrice) / buyPrice;
-            transactions.push({
-                '买入时间': "",
-                '买入价格': "",
-                '卖出时间': ts,
-                '卖出价格': endDatapvd.get(ts),
-                '收益比例': profit
-            });
+            transactions[last]['卖出价格'] = endDatapvd.get(ts);
+            transactions[last]['卖出时间'] = ts;
+            transactions[last]['收益比例'] = profit;
         }
         yest = today;
+    }
+    var total = transactions.length;
+    if(total > 0 && transactions[total-1]['卖出价格'] === undefined) {
+        transactions.pop();
     }
     return transactions;
 }

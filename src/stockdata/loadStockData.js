@@ -7,8 +7,9 @@ var cleanData = require('./cleanData');
 function loadStockData(secID) {
     var fileName = secID + '.json';
     return file.readFile(path.join(dir, fileName)).then((data) => {
-        var data = JSON.parse(data.toString());
+        data = JSON.parse(data.toString());
         cleanData(data);
+        data['id'] = secID;
         return data;
     })
 }

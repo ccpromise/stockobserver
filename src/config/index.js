@@ -9,8 +9,6 @@ exports.fiddlerPort = 8888;
 
 // datapvd
 exports.bollingerK = 2;
-exports.cacheTime = 10000;
-exports.macdParas = [12, 26, 9];
 
 // stockdata
 exports.stockDataDir = '../../data';

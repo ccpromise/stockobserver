@@ -6,8 +6,8 @@ function StockDataPvd(stock) {
     DataPvd.call(this); //*
 
     this.stock = stock.data;
-    this.minTs = stock.minDay;
-    this.maxTs = stock.maxDay;
+    this.minTs = stock.minTs;
+    this.maxTs = stock.maxTs;
     this._sortedTs = [];
     var idx = 0;
     for(var ts = this.minTs; ts <= this.maxTs; ts ++) {

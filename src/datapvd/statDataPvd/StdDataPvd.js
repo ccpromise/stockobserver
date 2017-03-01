@@ -1,6 +1,6 @@
 
 var StatDataPvd = require('./StatDataPvd');
-var Statistics = require('../../utility').statistics;
+var Statistics = require('../../utility/statistics');
 
 function StdDataPvd(pvd, N) {
     StatDataPvd.call(this, pvd, N);

@@ -23,18 +23,17 @@ OffsetDataPvd.prototype.hasDef = function(ts) {
 }
 
 OffsetDataPvd.prototype.get = function(ts) {
+    if(!this.hasDef(ts)) throw new Error('invalid ts');
     var realTs = this.N > 0 ? this.pvd.forwardDateTs(ts, this.N) : this.pvd.backwardDateTs(ts, -this.N);
     return this.pvd.get(realTs);
 }
 
 OffsetDataPvd.prototype.forwardDateTs = function(ts, n) {
-    var realTs = this.N > 0 ? this.pvd.forwardDateTs(ts, this.N) : this.pvd.backwardDateTs(ts, -this.N);
-    return this.pvd.forwardDateTs(realTs, n);
+    return this.pvd.forwardDateTs(ts, n);
 }
 
 OffsetDataPvd.prototype.backwardDateTs = function(ts, n) {
-    var realTs = this.N > 0 ? this.pvd.forwardDateTs(ts, this.N) : this.pvd.backwardDateTs(ts, -this.N);
-    return this.pvd.backwardDateTs(realTs, n);
+    return this.pvd.backwardDateTs(ts, n);
 }
 
 module.exports = OffsetDataPvd;

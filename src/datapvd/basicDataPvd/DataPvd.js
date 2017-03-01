@@ -1,5 +1,5 @@
 
-msg = 'Not Implemented';
+var msg = 'Not Implemented';
 
 function DataPvd() {
     this.minTs = -1;

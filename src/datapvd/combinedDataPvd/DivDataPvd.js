@@ -9,7 +9,7 @@ DivDataPvd.prototype = Object.create(CombinedDataPvd.prototype);
 
 DivDataPvd.prototype.get = function(ts) {
     if(!this.hasDef(ts)) throw new Error('invalid ts');
-    return this.pvds.reduce((pre, cur) => { pre /= cur.get(ts); return pre; }, Math.pow(this.pvds[0].get(ts), 2));
+    return this.pvds.slice(1).reduce((pre, cur) => { return pre / cur.get(ts); }, this.pvds[0].get(ts));
 }
 
 module.exports = DivDataPvd;
