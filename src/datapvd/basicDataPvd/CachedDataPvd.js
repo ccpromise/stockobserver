@@ -8,7 +8,7 @@ function CachedDataPvd() {
     this._cache = new cache();
 }
 
-CachedDataPvd.prototype = Object.create(DataPvd);
+CachedDataPvd.prototype = Object.create(DataPvd.prototype);
 
 CachedDataPvd.prototype.get = function(ts) {
     if(!this.hasDef(ts)) throw new Error('invalid ts');

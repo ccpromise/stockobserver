@@ -1,6 +1,6 @@
 
-var constructors = require('../datapvd');
 var validate = require('../utility').validate;
+var constructors = require('../datapvd');
 var existObj = {};
 
 function makeDataPvd(pvdName, paras) {
@@ -12,7 +12,7 @@ function makeDataPvd(pvdName, paras) {
             throw new Error('invalid parameters');
         for(var i = 0; i < len; i++) {
             if(!validate[args[i]](paras[i]))
-                throw new Error('invalid parameters');
+                throw new Error('invalid parameters2');
         }
     }
     else
@@ -47,13 +47,13 @@ function makeDataPvd(pvdName, paras) {
 var argsList = {
     'const': ['isAny'],
     'offset': ['isDataPvd', 'isNum'],
-    'add': ['isDataPvdArr'],
-    'div': ['isDataPvdArr'],
-    'mul': ['isDataPvdArr'],
-    'sub': ['isDataPvdArr'],
+    'add': ['isDataPvdArr', 'isNum'],
+    'div': ['isDataPvdArr', 'isNum'],
+    'mul': ['isDataPvdArr', 'isNum'],
+    'sub': ['isDataPvdArr', 'isNum'],
     'boll': ['isDataPvd', 'isNum'],
     'ema': ['isDataPvd', 'isNum'],
-    'macd': ['isDataPvd'],
+    'macd': ['isDataPvd', 'isArr'],
     'ma': ['isDataPvd', 'isNum'],
     'end': ['isStock']
 }

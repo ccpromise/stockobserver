@@ -86,5 +86,4 @@ fs.readFile('../datasrc/wmcloud/data.txt', (err, data) => {
     var csv = require('../../src/utility').file.writeToCSV;
     csv('./data.csv', x);
     console.log('done!');
-    console.log('waiting for cache to clear....');
 });
