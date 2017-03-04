@@ -1,84 +1,57 @@
 
-var validate = require('../utility').validate;
-var constructors = require('../datapvd');
+var DataPvd = require('../datapvd');
+var utility = require('../utility');
+var validate = utility.validate;
 var existObj = {};
+var cachedPvdList = {'ma': true, 'std': true, 'boll': true, 'ema': true, 'macd': true}
+var pvdList = {
+    'ma': DataPvd.MADataPvd,
+    'std': DataPvd.StdDataPvd,
+    'boll': DataPvd.BollDataPvd,
+    'ema': DataPvd.EMADataPvd,
+    'macd': DataPvd.MACDDataPvd,
+    'add': DataPvd.AddDataPvd,
+    'div': DataPvd.DivDataPvd,
+    'mul': DataPvd.MulDataPvd,
+    'sub': DataPvd.SubDataPvd,
+    'const': DataPvd.ConstDataPvd,
+    'offset': DataPvd.OffsetDataPvd,
+    'end': DataPvd.EndDataPvd
+}
 
-function makeDataPvd(pvdName, paras) {
-    // check the validality of input
-    if(pvdName in argsList) {
-        var len = paras.length;
-        var args = argsList[pvdName];
-        if(len !== args.length)
-            throw new Error('invalid parameters');
-        for(var i = 0; i < len; i++) {
-            if(!validate[args[i]](paras[i]))
-                throw new Error('invalid parameters2');
-        }
-    }
-    else
-        throw new Error('invalid datapvd type');
+// ldp: {'type': , 'pack': {}}
+function checkParas(ldp) {
+    if(!validate.isObj(ldp)) return false;
+    var name = ldp.type;
+    if(!(name in pvdList)) return false;
+    return pvdList[name].checkParas(ldp.pack);
+}
 
-    var id = '';
-    paras.forEach((item) => {
-        if(validate.isArr(item)) {
-            item.forEach((p) => {
-                id = '_' + (p['id'] ? p['id'] : JSON.stringify(p)) + id;
-            });
-        }
-        else {
-            id = '_' + (item['id'] ? item['id'] : JSON.stringify(item)) + id;
-        }
-    })
-    id = pvdName + id;
+function pvdID(ldp) {
+    return pvdList[ldp.type].pvdID(ldp.pack);
+}
+
+function makePvd(ldp, id) {
+    return pvdList[ldp.type].makePvd(ldp.pack, id);
+}
+
+function makeDataPvd(ldp) {
+    if(!checkParas(ldp)) throw new Erro('invalid literal dp.');
+    var id = pvdID(ldp);
     if(id in existObj) {
-        console.log('Old object returned(id=', id, ')');
-        return existObj[id];
+        console.log('old pvd returned, id: ', id);
+        return Promise.resolve(existObj[id]);
     }
-    else {
-        var constFunc = constructors[pvd[pvdName]];
-        var obj = newConstructor(constFunc, paras);
-        existObj[id] = obj;
-        obj['id'] = id;
-        console.log('New object created(id = ', id, '). ', 'Current total pvds: ', Object.keys(existObj).length);
-        return obj;
-    }
+    return makePvd(ldp, id).then((createObj) => {
+        console.log('new pvd created, id: ', id);
+        if(ldp.type in cachedPvdList) existObj[id] = createObj;
+        return createObj;
+    });
 }
 
-var argsList = {
-    'const': ['isAny'],
-    'offset': ['isDataPvd', 'isNum'],
-    'add': ['isDataPvdArr', 'isNum'],
-    'div': ['isDataPvdArr', 'isNum'],
-    'mul': ['isDataPvdArr', 'isNum'],
-    'sub': ['isDataPvdArr', 'isNum'],
-    'boll': ['isDataPvd', 'isNum'],
-    'ema': ['isDataPvd', 'isNum'],
-    'macd': ['isDataPvd', 'isArr'],
-    'ma': ['isDataPvd', 'isNum'],
-    'end': ['isStock']
-}
-
-var pvd = {
-    'const': 'ConstDataPvd',
-    'offset': 'OffsetDataPvd',
-    'add': 'AddDataPvd',
-    'div': 'DivDataPvd',
-    'sub': 'SubDataPvd',
-    'mul': 'MulDataPvd',
-    'boll': 'BollDataPvd',
-    'ema': 'EMADataPvd',
-    'macd': 'MACDDataPvd',
-    'ma': 'MADataPvd',
-    'end': 'EndDataPvd'
-}
-
-function newConstructor(constructor, args) {
-    function f() {
-        return constructor.apply(this, args);
-    }
-    f.prototype = constructor.prototype;
-    f.constructor = constructor;
-    return new f();
-}
-
-module.exports = makeDataPvd;
+exports.pvdGenerator = {
+    'checkParas': checkParas,
+    'pvdID': pvdID,
+    'makePvd': makePvd
+};
+exports.makeDataPvd = makeDataPvd;

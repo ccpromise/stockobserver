@@ -2,8 +2,8 @@
 var DataPvd = require('../basicDataPvd/DataPvd');
 var time = require('../../utility').time;
 
-function StockDataPvd(stock) {
-    DataPvd.call(this); //*
+function StockDataPvd(stock, id) {
+    DataPvd.call(this, id); //*
 
     this.stock = stock.data;
     this.minTs = stock.minTs;

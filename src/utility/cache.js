@@ -10,7 +10,6 @@ cache.prototype.get = function(key) {
 
 cache.prototype.set = function(key, value) {
     this._data[key] = value;
-    this._maxKey = Math.max(this._maxKey, key);
 }
 
 cache.prototype.has = function(key) {

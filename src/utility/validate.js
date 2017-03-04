@@ -1,5 +1,5 @@
 
-var DataPvd = require('../datapvd').DataPvd;
+var DataPvd = require('../datapvd/basicDataPvd/DataPvd');
 var Stock = require('../stockdata').Stock;
 
 exports.isStr = function (val) {
@@ -14,16 +14,20 @@ exports.isNum = function (val) {
     return typeof val === 'number';
 }
 
+exports.isPosNum = function(val) {
+    return typeof val === 'number' && val > 0;
+}
+
+exports.isNonNegNum = function(val) {
+    return typeof val === 'number' && val >= 0;
+}
+
 exports.isBool = function (val) {
     return typeof val === 'boolean';
 }
 
 exports.isDataPvd = function (val) {
     return val instanceof DataPvd;
-}
-
-exports.isDataPvdArr = function(val) {
-    return val instanceof Array && val.every(exports.isDataPvd);
 }
 
 exports.isStock = function(val) {
@@ -35,5 +39,5 @@ exports.isAny = function(val) {
 }
 
 exports.isArr = function(val) {
-    return val instanceof Array;
+    return Array.isArray(val);
 }

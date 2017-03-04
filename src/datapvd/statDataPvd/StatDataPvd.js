@@ -1,8 +1,8 @@
 
-var CachedDataPvd = require('../basicDataPvd/CachedDataPvd');
+var CachedDataPvd = require('../basicDataPvd').CachedDataPvd;
 
-function StatDataPvd(pvd, N) {
-    CachedDataPvd.call(this);
+function StatDataPvd(pvd, N, id) {
+    CachedDataPvd.call(this, id);
 
     this.minTs = pvd.forwardDateTs(pvd.minTs, N-1);
     this.maxTs = this.minTs == -1 ? -1 : pvd.maxTs;

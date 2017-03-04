@@ -3,8 +3,8 @@ var DataPvd = require('./DataPvd');
 var cache = require('../../utility/cache');
 var msg = 'Not Implemented';
 
-function CachedDataPvd() {
-    DataPvd.call(this);
+function CachedDataPvd(id) {
+    DataPvd.call(this, id);
     this._cache = new cache();
 }
 

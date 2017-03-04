@@ -1,9 +1,10 @@
 
 var msg = 'Not Implemented';
 
-function DataPvd() {
+function DataPvd(id) {
     this.minTs = -1;
     this.maxTs = -1;
+    this.id = id;
 }
 
 DataPvd.prototype.hasDef = function(ts) {

@@ -1,8 +1,8 @@
 
-var DataPvd = require('../basicDataPvd/DataPvd');
+var DataPvd = require('../basicDataPvd').DataPvd;
 
-function CombinedDataPvd(pvds, domainIdx) {
-    DataPvd.call(this);
+function CombinedDataPvd(pvds, domainIdx, id) {
+    DataPvd.call(this, id);
     this.minTs = pvds[domainIdx].minTs
     this.maxTs = pvds[domainIdx].maxTs;
     this.pvds = pvds;

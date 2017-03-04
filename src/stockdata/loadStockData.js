@@ -9,7 +9,6 @@ function loadStockData(secID) {
     return file.readFile(path.join(dir, fileName)).then((data) => {
         data = JSON.parse(data.toString());
         cleanData(data);
-        data['id'] = secID;
         return data;
     })
 }

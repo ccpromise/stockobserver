@@ -1,15 +1,22 @@
 
-exports.AddDataPvd = require('./combinedDataPvd/AddDataPvd');
-exports.BollDataPvd = require('./statDataPvd/BollDataPvd');
-exports.EMADataPvd = require('./statDataPvd/EMADataPvd');
-exports.MACDDataPvd = require('./statDataPvd/MACDDataPvd');
-exports.MADataPvd = require('./statDataPvd/MADataPvd');
-exports.ConstDataPvd = require('./basicDataPvd/ConstDataPvd');
-exports.DivDataPvd = require('./combinedDataPvd/DivDataPvd');
-exports.EndDataPvd = require('./stockDataPvd/EndDataPvd');
-exports.MADataPvd = require('./statDataPvd/MADataPvd');
-exports.MulDataPvd = require('./combinedDataPvd/MulDataPvd');
-exports.OffsetDataPvd = require('./basicDataPvd/OffsetDataPvd');
-exports.StdDataPvd = require('./statDataPvd/StdDataPvd');
-exports.SubDataPvd = require('./combinedDataPvd/SubDataPvd');
-exports.DataPvd = require('./basicDataPvd/DataPvd')
+var statDataPvd = require('./statDataPvd');
+var combinedDataPvd = require('./combinedDataPvd');
+var stockDataPvd = require('./stockDataPvd');
+var basicDataPvd = require('./basicDataPvd');
+
+exports.MADataPvd = statDataPvd.MADataPvd;
+exports.StdDataPvd = statDataPvd.StdDataPvd;
+exports.BollDataPvd = statDataPvd.BollDataPvd;
+exports.EMADataPvd = statDataPvd.EMADataPvd;
+exports.MACDDataPvd = statDataPvd.MACDDataPvd;
+
+exports.AddDataPvd = combinedDataPvd.AddDataPvd;
+exports.SubDataPvd = combinedDataPvd.SubDataPvd;
+exports.MulDataPvd = combinedDataPvd.MulDataPvd;
+exports.DivDataPvd = combinedDataPvd.DivDataPvd;
+
+exports.ConstDataPvd = basicDataPvd.ConstDataPvd;
+exports.OffsetDataPvd = basicDataPvd.OffsetDataPvd;
+exports.DataPvd = basicDataPvd.DataPvd;
+
+exports.EndDataPvd = stockDataPvd.EndDataPvd;
