@@ -40,18 +40,18 @@ OffsetDataPvd.prototype.backwardDateTs = function(ts, n) {
     return this.pvd.backwardDateTs(ts, n);
 }
 
-function checkParams(paraObj) {
-    if(!(validate.isObj(paraObj) && object.numOfKeys(paraObj) === 2 && validate.isInt(paraObj.N))) return false;
-    return pvdGenerator.checkldp(paraObj.pvd);
+function checkParams(paramObj) {
+    if(!(validate.isObj(paramObj) && object.numOfKeys(paramObj) === 2 && validate.isInt(paramObj.N))) return false;
+    return pvdGenerator.checkldp(paramObj.pvd);
 }
 
-function pvdID(paraObj) {
-    return 'offset' + '_' + paraObj.N + '_' + pvdGenerator.pvdID(paraObj.pvd);
+function pvdID(paramObj) {
+    return 'offset' + '_' + paramObj.N + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
-function makePvd(paraObj, id) {
-    return pvdGenerator.makePvd(paraObj.pvd).then((pvd) => {
-        return new OffsetDataPvd(pvd, paraObj.N, id);
+function makePvd(paramObj, id) {
+    return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
+        return new OffsetDataPvd(pvd, paramObj.N, id);
     });
 }
 

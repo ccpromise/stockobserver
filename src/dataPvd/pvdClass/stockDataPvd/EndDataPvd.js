@@ -16,16 +16,16 @@ EndDataPvd.prototype.get = function(ts) {
     return this.stock[ts]['e'];
 }
 
-function checkParams(paraObj) {
-    return validate.isStr(paraObj);
+function checkParams(secID) {
+    return validate.isStr(secID);
 }
 
-function pvdID(paraObj) {
-    return 'end' + '_' + paraObj;
+function pvdID(secID) {
+    return 'end' + '_' + secID;
 }
 
-function makePvd(paraObj, id) {
-    return loadStockData(paraObj).then((stock) => { return new EndDataPvd(stock, id); });
+function makePvd(secID, id) {
+    return loadStockData(secID).then((stock) => { return new EndDataPvd(stock, id); });
 }
 
 module.exports = {

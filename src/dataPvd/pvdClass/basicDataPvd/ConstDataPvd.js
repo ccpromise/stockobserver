@@ -28,16 +28,16 @@ ConstDataPvd.prototype.backwardDateTs = function(ts, n) {
 }
 
 // {'obj': }
-function checkParams(paraObj) {
+function checkParams(obj) {
     return true
 }
 
-function pvdID(paraObj) {
-    return 'const' + '_' + JSON.stringify(paraObj);
+function pvdID(obj) {
+    return 'const' + '_' + JSON.stringify(obj);
 }
 
-function makePvd(paraObj, id) {
-    return Promise.resolve(new ConstDataPvd(paraObj, id));
+function makePvd(obj, id) {
+    return Promise.resolve(new ConstDataPvd(obj, id));
 }
 
 

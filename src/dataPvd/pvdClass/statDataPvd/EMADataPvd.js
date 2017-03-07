@@ -58,18 +58,18 @@ EMADataPvd.prototype.backwardDateTs = function(ts, n) {
 }
 
 // {'pvd': , 'N':}
-function checkParams(paraObj) {
-    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 2 || !validate.isPosInt(paraObj.N)) return false;
-    return pvdGenerator.checkldp(paraObj.pvd);
+function checkParams(paramObj) {
+    if(!validate.isObj(paramObj) || object.numOfKeys(paramObj) !== 2 || !validate.isPosInt(paramObj.N)) return false;
+    return pvdGenerator.checkldp(paramObj.pvd);
 }
 
-function pvdID(paraObj) {
-    return 'ema' + '_' + paraObj.N + '_' + pvdGenerator.pvdID(paraObj.pvd);
+function pvdID(paramObj) {
+    return 'ema' + '_' + paramObj.N + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
-function makePvd(paraObj, id) {
-    return pvdGenerator.makePvd(paraObj.pvd).then((pvd) => {
-        return new EMADataPvd(pvd, paraObj.N, id);
+function makePvd(paramObj, id) {
+    return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
+        return new EMADataPvd(pvd, paramObj.N, id);
     })
 }
 

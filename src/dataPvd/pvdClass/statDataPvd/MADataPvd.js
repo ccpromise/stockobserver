@@ -24,20 +24,20 @@ MADataPvd.prototype._calculate = function(ts) {
     return statistics.mean(data);
 }
 
-// paraObj: {'N':, 'pvd': pvdX}
-// paraObj: {'N': , 'pvd': {type: , pack: }}
-function checkParams(paraObj) {
-    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 2 || !validate.isPosInt(paraObj.N)) return false;
-    return pvdGenerator.checkldp(paraObj.pvd);
+// paramObj: {'N':, 'pvd': pvdX}
+// paramObj: {'N': , 'pvd': {type: , pack: }}
+function checkParams(paramObj) {
+    if(!validate.isObj(paramObj) || object.numOfKeys(paramObj) !== 2 || !validate.isPosInt(paramObj.N)) return false;
+    return pvdGenerator.checkldp(paramObj.pvd);
 }
 
-function pvdID(paraObj) {
-    return 'ma' + '_' + paraObj.N + '__' + pvdGenerator.pvdID(paraObj.pvd);
+function pvdID(paramObj) {
+    return 'ma' + '_' + paramObj.N + '__' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
-function makePvd(paraObj, id) {
-    return pvdGenerator.makePvd(paraObj.pvd).then((subPvd) => {
-        return new MADataPvd(subPvd, paraObj.N, id);
+function makePvd(paramObj, id) {
+    return pvdGenerator.makePvd(paramObj.pvd).then((subPvd) => {
+        return new MADataPvd(subPvd, paramObj.N, id);
     });
 }
 
