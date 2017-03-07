@@ -1,7 +1,7 @@
 
 var CachedDataPvd = require('../basicDataPvd').CachedDataPvd;
-var pvdGenerator = require('../../dataPvdGenerator');
-var utility = require('../../utility');
+var pvdGenerator = require('../../../dataPvd/makeDataPvd');
+var utility = require('../../../utility');
 var validate = utility.validate;
 var object = utility.object;
 
@@ -58,26 +58,23 @@ EMADataPvd.prototype.backwardDateTs = function(ts, n) {
 }
 
 // {'pvd': , 'N':}
-function checkParas(paraObj) {
-    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 2 || !validate.isNonNegNum(paraObj.N)) return false;
-    if(validate.isDataPvd(paraObj.pvd)) return true;
-    return pvdGenerator.pvdGenerator.checkParas(paraObj.pvd);
+function checkParams(paraObj) {
+    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 2 || !validate.isPosInt(paraObj.N)) return false;
+    return pvdGenerator.checkldp(paraObj.pvd);
 }
 
 function pvdID(paraObj) {
-    var subID = validate.isDataPvd(paraObj.pvd) ? paraObj.pvd.id : pvdGenerator.pvdGenerator.pvdID(paraObj.pvd);
-    return 'ema' + '_' + paraObj.N + '_' + subID;
+    return 'ema' + '_' + paraObj.N + '_' + pvdGenerator.pvdID(paraObj.pvd);
 }
 
 function makePvd(paraObj, id) {
-    var subPvd = validate.isDataPvd(paraObj.pvd) ? Promise.resolve(paraObj.pvd) : pvdGenerator.pvdGenerator.makePvd(paraObj.pvd);
-    return subPvd.then((pvd) => {
+    return pvdGenerator.makePvd(paraObj.pvd).then((pvd) => {
         return new EMADataPvd(pvd, paraObj.N, id);
     })
 }
 
 module.exports = {
-    'checkParas': checkParas,
+    'checkParams': checkParams,
     'pvdID': pvdID,
     'makePvd': makePvd
 };

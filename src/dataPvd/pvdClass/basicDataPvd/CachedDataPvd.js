@@ -1,6 +1,6 @@
 
 var DataPvd = require('./DataPvd');
-var cache = require('../../utility/cache');
+var cache = require('../../../utility/cache');
 var msg = 'Not Implemented';
 
 function CachedDataPvd(id) {

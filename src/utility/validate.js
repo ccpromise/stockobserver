@@ -1,5 +1,5 @@
 
-var DataPvd = require('../datapvd/basicDataPvd/DataPvd');
+var DataPvd = require('../dataPvd/pvdClass/basicDataPvd/DataPvd');
 var Stock = require('../stockdata').Stock;
 
 exports.isStr = function (val) {
@@ -14,12 +14,24 @@ exports.isNum = function (val) {
     return typeof val === 'number';
 }
 
+exports.isInt = function(val) {
+    return typeof val === 'number' && val === Math.floor(val);
+}
+
 exports.isPosNum = function(val) {
     return typeof val === 'number' && val > 0;
 }
 
+exports.isPosInt = function(val) {
+    return typeof val === 'number' && val > 0 && val === Math.floor(val);
+}
+
 exports.isNonNegNum = function(val) {
     return typeof val === 'number' && val >= 0;
+}
+
+exports.isNonNegInt = function(val) {
+    return typeof val === 'number' && val >= 0 && val === Math.floor(val);
 }
 
 exports.isBool = function (val) {

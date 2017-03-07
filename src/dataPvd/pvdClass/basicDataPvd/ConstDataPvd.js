@@ -1,6 +1,6 @@
 
 var DataPvd = require('./DataPvd');
-var object = require('../../utility').object;
+var object = require('../../../utility').object;
 
 function ConstDataPvd(obj, id) {
     DataPvd.call(this, id);
@@ -28,21 +28,21 @@ ConstDataPvd.prototype.backwardDateTs = function(ts, n) {
 }
 
 // {'obj': }
-function checkParas(paraObj) {
-    return 'obj' in paraObj && object.numOfKeys(paraObj) === 1;
+function checkParams(paraObj) {
+    return true
 }
 
 function pvdID(paraObj) {
-    return 'const' + '_' + JSON.stringify(paraObj['obj']);
+    return 'const' + '_' + JSON.stringify(paraObj);
 }
 
 function makePvd(paraObj, id) {
-    return Promise.resolve(new ConstDataPvd(paraObj['obj'], id));
+    return Promise.resolve(new ConstDataPvd(paraObj, id));
 }
 
 
 module.exports = {
-    'checkParas': checkParas,
+    'checkParams': checkParams,
     'pvdID': pvdID,
     'makePvd': makePvd
 }

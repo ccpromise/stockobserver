@@ -1,7 +1,7 @@
 
 var CachedDataPvd = require('../basicDataPvd').CachedDataPvd;
-var pvdGenerator = require('../../dataPvdGenerator');
-var utility = require('../../utility');
+var pvdGenerator = require('../../../dataPvd/makeDataPvd');
+var utility = require('../../../utility');
 var validate = utility.validate;
 var object = utility.object;
 
@@ -39,30 +39,27 @@ MACDDataPvd.prototype.backwardDateTs = function(ts) {
 }
 
 // {'pvd': , 'paras': }
-function checkParas(paraObj) {
-    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 2 ||
-    !validate.isObj(paraObj.paras) || object.numOfKeys(paraObj.paras) !== 3 ||
-    !validate.isNonNegNum(paraObj.paras.Nl) || !validate.isNonNegNum(paraObj.paras.Ns) || !validate.isNonNegNum(paraObj.paras.Na))
+function checkParams(paraObj) {
+    if(!validate.isObj(paraObj) || object.numOfKeys(paraObj) !== 4 ||
+    !validate.isPosInt(paraObj.Nl) || !validate.isPosInt(paraObj.Ns) || !validate.isPosInt(paraObj.Na))
         return false;
-    if(validate.isDataPvd(paraObj.pvd)) return true;
-    return pvdGenerator.pvdGenerator.checkParas(paraObj.pvd);
+    return pvdGenerator.checkldp(paraObj.pvd);
 }
 
 function pvdID(paraObj) {
-    var subID = validate.isDataPvd(paraObj.pvd) ? paraObj.pvd.id : pvdGenerator.pvdGenerator.pvdID(paraObj.pvd);
-    return 'macd' + '_' + paraObj.paras.Nl + '_' + paraObj.paras.Ns + '_' + paraObj.paras.Na + '_' + subID;
+    return 'macd' + '_' + paraObj.Nl + '_' + paraObj.Ns + '_' + paraObj.Na + '_' + pvdGenerator.pvdID(paraObj.pvd);
 }
 
 function makePvd(paraObj, id) {
-    return (validate.isDataPvd(paraObj.pvd) ? Promise.resolve(paraObj.pvd) : pvdGenerator.pvdGenerator.makePvd(paraObj.pvd)).then((pvd) => {
-        var ema1 = {'type': 'ema', 'pack': {'N': paraObj.paras.Nl, 'pvd': pvd}};
-        var ema2 = {'type': 'ema', 'pack': {'N': paraObj.paras.Ns, 'pvd': pvd}};
+    return pvdGenerator.makePvd(paraObj.pvd).then((pvd) => {
+        var ema1 = {'type': 'ema', 'pack': {'N': paraObj.Nl, 'pvd': pvd}};
+        var ema2 = {'type': 'ema', 'pack': {'N': paraObj.Ns, 'pvd': pvd}};
         var dif = {'type': 'sub', 'pack': {'pvds': [ema1, ema2], 'idx': 1}};
-        return pvdGenerator.pvdGenerator.makePvd(dif).then((difPvd) => {
-            var dea = {'type': 'ema', 'pack': {'N': paraObj.paras.Na, 'pvd': difPvd}};
-            return pvdGenerator.pvdGenerator.makePvd(dea).then((deaPvd) => {
+        return pvdGenerator.makePvd(dif).then((difPvd) => {
+            var dea = {'type': 'ema', 'pack': {'N': paraObj.Na, 'pvd': difPvd}};
+            return pvdGenerator.makePvd(dea).then((deaPvd) => {
                 var macd = {'type': 'sub', 'pack': {'pvds': [difPvd, deaPvd], 'idx': 0}};
-                return pvdGenerator.pvdGenerator.makePvd(macd).then((macdPvd) => {
+                return pvdGenerator.makePvd(macd).then((macdPvd) => {
                     return new MACDDataPvd(pvd, difPvd, deaPvd, macdPvd, id);
                 });
             });
@@ -71,7 +68,7 @@ function makePvd(paraObj, id) {
 }
 
 module.exports = {
-    'checkParas': checkParas,
+    'checkParams': checkParams,
     'pvdID': pvdID,
     'makePvd': makePvd
 }

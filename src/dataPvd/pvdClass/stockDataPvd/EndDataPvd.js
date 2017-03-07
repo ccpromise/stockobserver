@@ -1,7 +1,7 @@
 
 var StockDataPvd = require('./StockDataPvd');
-var loadStockData = require('../../stockData').loadStockData;
-var utility = require('../../utility');
+var loadStockData = require('../../../stockData').loadStockData;
+var utility = require('../../../utility');
 var validate = utility.validate;
 var object = utility.object;
 
@@ -16,20 +16,20 @@ EndDataPvd.prototype.get = function(ts) {
     return this.stock[ts]['e'];
 }
 
-function checkParas(paraObj) {
-    return validate.isStr(paraObj['secID']) && object.numOfKeys(paraObj) === 1;
+function checkParams(paraObj) {
+    return validate.isStr(paraObj);
 }
 
 function pvdID(paraObj) {
-    return 'end' + '_' + paraObj['secID'];
+    return 'end' + '_' + paraObj;
 }
 
 function makePvd(paraObj, id) {
-    return loadStockData(paraObj['secID']).then((stock) => { return new EndDataPvd(stock, id); });
+    return loadStockData(paraObj).then((stock) => { return new EndDataPvd(stock, id); });
 }
 
 module.exports = {
-    'checkParas': checkParas,
+    'checkParams': checkParams,
     'pvdID': pvdID,
     'makePvd': makePvd
 }

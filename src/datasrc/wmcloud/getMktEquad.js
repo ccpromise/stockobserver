@@ -12,12 +12,17 @@ var opt = {
 
 exports.getMktEquad = function(query) {
     return new Promise((resolve, reject) => {
-        var option = utility.clone(opt);
-        option.query = 'field='+query.field+'&beginDate='+query.beginDate+'&endDate='+query.endDate+'&secID='+query.secID+'&ticker='+query.ticker+'&tradeDate='+query.tradeDate;
-        //wmcloud is an https api
-        utility.http.request(option).then((data) => {
-            data = JSON.parse(data.toString());
-            resolve(data);
-        }).catch(reject);
+        try {
+            var option = utility.object.clone(opt);
+            option.query = 'field='+query.field+'&beginDate='+query.beginDate+'&endDate='+query.endDate+'&secID='+query.secID+'&ticker='+query.ticker+'&tradeDate='+query.tradeDate;
+            //wmcloud is an https api
+            utility.http.request(option).then((data) => {
+                data = JSON.parse(data.toString());
+                resolve(data);
+            }).catch(reject);
+        }
+        catch(err) {
+            reject(err);
+        }
     });
 };

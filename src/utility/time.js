@@ -16,3 +16,23 @@ exports.getDateTs = function(date) {
 exports.now = function() {
     return moment();
 }
+
+exports.today = function() {
+    return moment().format('YYYYMMDD');
+}
+
+exports.tomorrow = function() {
+    return moment().add(1, 'day').format('YYYYMMDD');
+}
+
+exports.nextDay = function(date) {
+    return moment(date).add(1, 'day').format('YYYYMMDD');
+}
+
+exports.isBefore = function(day1, day2) {
+    return moment(day1).isBefore(day2);
+}
+
+exports.isAfter = function(day1, day2) {
+    return moment(day1).isAfter(day2);
+}
