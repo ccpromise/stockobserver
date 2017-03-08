@@ -5,12 +5,8 @@ exports.formatDate = function(date, format) {
 }
 
 exports.getDateTs = function(date) {
-    if(date === undefined || date < 0) return -1;
-    date = moment(date);
-    var y = date.format('YYYY');
-    var m = date.format('MM');
-    var d = date.format('DD');
-    return Date.UTC(y, m, d) / (60*60*24*1000);;
+    date = moment(date).format('YYYY-MM-DD');
+    return moment(date+' 08:00').valueOf() / (60*60*24*1000);
 }
 
 exports.now = function() {

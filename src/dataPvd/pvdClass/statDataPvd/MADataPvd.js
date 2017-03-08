@@ -35,10 +35,16 @@ function pvdID(paramObj) {
     return 'ma' + '_' + paramObj.N + '__' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
+var pendingPromise = {};
 function makePvd(paramObj, id) {
-    return pvdGenerator.makePvd(paramObj.pvd).then((subPvd) => {
-        return new MADataPvd(subPvd, paramObj.N, id);
-    });
+    if(!(id in pendingPromise)) {
+        var promise = pvdGenerator.makePvd(paramObj.pvd).then((subPvd) => {
+            delete pendingPromise[id];
+            return new MADataPvd(subPvd, paramObj.N, id);
+        });
+        pendingPromise[id] = promise;
+    }
+    return pendingPromise[id];
 }
 
 module.exports = {

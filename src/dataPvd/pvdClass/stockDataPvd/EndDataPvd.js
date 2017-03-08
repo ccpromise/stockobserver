@@ -24,8 +24,16 @@ function pvdID(secID) {
     return 'end' + '_' + secID;
 }
 
+var pendingPromise = {};
 function makePvd(secID, id) {
-    return loadStockData(secID).then((stock) => { return new EndDataPvd(stock, id); });
+    if(!(id in pendingPromise)) {
+        var promise = loadStockData(secID).then((stock) => {
+            delete pendingPromise[id];
+            return new EndDataPvd(stock, id);
+        });
+        pendingPromise[id] = promise;
+    }
+    return pendingPromise[id];
 }
 
 module.exports = {

@@ -41,13 +41,9 @@ function makePvd(ldp) {
             else if(!checkldp(ldp)) reject(new Error('invaid literal dp'));
             else {
                 var id = pvdID(ldp);
-                if(id in existObj) {
-                    console.log('old pvd returned, id: ', id);
-                    resolve(existObj[id]);
-                }
+                if(id in existObj) resolve(existObj[id]);
                 else {
                     pvdList[ldp.type].makePvd(ldp.pack, id).then((createdObj) => {
-                        console.log('new pvd created, id: ', id);
                         if(ldp.type in cachedPvdList) existObj[id] = createdObj;
                         resolve(createdObj);
                     }).catch(reject);

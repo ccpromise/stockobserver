@@ -24,12 +24,18 @@ function pvdID(paramObj, name) {
     return name + '_' + paramObj.idx + subID;
 }
 
+var pendingPromise = {};
 function makePvd(paramObj, id, consFunc) {
-    return Promise.all(paramObj.pvds.map((pvd) => {
-        return pvdGenerator.makePvd(pvd);
-    })).then((pvds) => {
-        return new consFunc(pvds, paramObj.idx, id);
-    });
+    if(!(id in pendingPromise)) {
+        var promise = Promise.all(paramObj.pvds.map((pvd) => {
+            return pvdGenerator.makePvd(pvd);
+        })).then((pvds) => {
+            delete pendingPromise[id];
+            return new consFunc(pvds, paramObj.idx, id);
+        });
+        pendingPromise[id] = promise;
+    }
+    return pendingPromise[id];
 }
 
 module.exports = {

@@ -67,10 +67,16 @@ function pvdID(paramObj) {
     return 'ema' + '_' + paramObj.N + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
+var pendingPromise = {};
 function makePvd(paramObj, id) {
-    return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
-        return new EMADataPvd(pvd, paramObj.N, id);
-    })
+    if(!(id in pendingPromise)) {
+        var promise = pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
+            delete pendingPromise[id];
+            return new EMADataPvd(pvd, paramObj.N, id);
+        });
+        pendingPromise[id] = promise;
+    }
+    return pendingPromise[id];
 }
 
 module.exports = {

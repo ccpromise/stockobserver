@@ -6,11 +6,9 @@ var fs = require('fs');
 wmcloud.getHistoryData('000001.XSHE').then((data) => {
     var res = {};
     console.log(data);
-    for(date in data) {
-        console.log(date);
+    for(date in data.data) {
         res[time.getDateTs(date)] = data[date];
     }
-    console.log(res);
     fs.writeFile('./data.txt', JSON.stringify(res), (err) => {
         console.log('done!');
     })

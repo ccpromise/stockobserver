@@ -37,5 +37,6 @@ makeDataPvd(ldp1).then((end) => {
     var ldp3 = {'type': 'ma', 'pack': {'pvd': end, 'N': 5}};
     return makeDataPvd(ldp3).then(() => makeDataPvd(ldp3));
 });
-makeDataPvd(ldp2); //pvd1
-makeDataPvd(ldp2); //pvd2
+var end1 = null;
+makeDataPvd(ldp2).then((end) => {end1 = end;}); //pvd1
+makeDataPvd(ldp2).then((end) => {console.log(end === end1)}); //pvd2
