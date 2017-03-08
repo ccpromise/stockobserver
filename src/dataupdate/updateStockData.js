@@ -1,10 +1,13 @@
 var getStockList = require('./getStockList');
-var stockDir = require('../config').stockDataDir;
+var config = require('../config');
+var stockDir = config.stockDataDir;
+var parallelRequest = config.parallelRequest;
 var utility = require('../utility');
 var file = utility.file;
 var time = utility.time;
 var path = require('path');
 var getHistoryData = require('../datasrc/wmcloud').getHistoryData;
+var promisePool = require('./promisePool');
 var whileAsync = require('./whileAsync');
 
 /*
@@ -66,7 +69,8 @@ function updateStockData() {
             })
         });
         return whileAsync(promises, (secID) => { console.log(secID, ' updated'); }, (err) => { console.log(err); });
-    })
+        //return promisePool(promises, (secID) => { console.log(secID, ' updated'); }, (err) => { console.log(err); }, parallelRequest);
+    });
 }
 
 module.exports = updateStockData;

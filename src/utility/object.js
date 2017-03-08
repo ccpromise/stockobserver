@@ -16,3 +16,7 @@ exports.contentEqual = function(obj1, obj2) {
 exports.numOfKeys = function(obj) {
     return Object.keys(obj).length;
 }
+
+exports.isEmpty = function(obj) {
+    return Object.keys(obj).length === 0;
+}

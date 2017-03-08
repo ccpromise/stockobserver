@@ -1,4 +1,6 @@
 
+var object = require('../utility').object;
+
 function whileAsync(promiseArr, resolve, reject) {
     var rejectedPromise = {};
     return promiseArr.reduce((pre, cur, idx) => {
@@ -9,7 +11,7 @@ function whileAsync(promiseArr, resolve, reject) {
             });
         })
     }, Promise.resolve()).then(() => {
-        if(rejectedPromise.length === 0) return Promise.resolve();
+        if(object.isEmpty(rejectedPromise)) return Promise.resolve();
         return Promise.reject(rejectedPromise);
     });
 }

@@ -5,7 +5,9 @@ var fs = require('fs');
 
 wmcloud.getHistoryData('000001.XSHE').then((data) => {
     var res = {};
+    console.log(data);
     for(date in data) {
+        console.log(date);
         res[time.getDateTs(date)] = data[date];
     }
     console.log(res);
