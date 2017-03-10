@@ -50,27 +50,21 @@ function pvdID(paramObj) {
     return 'macd' + '_' + paramObj.Nl + '_' + paramObj.Ns + '_' + paramObj.Na + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
-var pendingPromise = {};
 function makePvd(paramObj, id) {
-    if(!(id in pendingPromise)) {
-        var promise = pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
-            var ema1 = {'type': 'ema', 'pack': {'N': paramObj.Nl, 'pvd': pvd}};
-            var ema2 = {'type': 'ema', 'pack': {'N': paramObj.Ns, 'pvd': pvd}};
-            var dif = {'type': 'sub', 'pack': {'pvds': [ema1, ema2], 'idx': 1}};
-            return pvdGenerator.makePvd(dif).then((difPvd) => {
-                var dea = {'type': 'ema', 'pack': {'N': paramObj.Na, 'pvd': difPvd}};
-                return pvdGenerator.makePvd(dea).then((deaPvd) => {
-                    var macd = {'type': 'sub', 'pack': {'pvds': [difPvd, deaPvd], 'idx': 0}};
-                    return pvdGenerator.makePvd(macd).then((macdPvd) => {
-                        delete pendingPromise[id];
-                        return new MACDDataPvd(pvd, difPvd, deaPvd, macdPvd, id);
-                    });
+    return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
+        var ema1 = {'type': 'ema', 'pack': {'N': paramObj.Nl, 'pvd': pvd}};
+        var ema2 = {'type': 'ema', 'pack': {'N': paramObj.Ns, 'pvd': pvd}};
+        var dif = {'type': 'sub', 'pack': {'pvds': [ema1, ema2], 'idx': 1}};
+        return pvdGenerator.makePvd(dif).then((difPvd) => {
+            var dea = {'type': 'ema', 'pack': {'N': paramObj.Na, 'pvd': difPvd}};
+            return pvdGenerator.makePvd(dea).then((deaPvd) => {
+                var macd = {'type': 'sub', 'pack': {'pvds': [difPvd, deaPvd], 'idx': 0}};
+                return pvdGenerator.makePvd(macd).then((macdPvd) => {
+                    return new MACDDataPvd(pvd, difPvd, deaPvd, macdPvd, id);
                 });
             });
         });
-        pendingPromise[id] = promise;
-    }
-    return pendingPromise[id];
+    });
 
 }
 

@@ -1,4 +1,4 @@
-var whileAsync = function(list, iterator) {
+var forEach = function(list, iterator) {
     return list.reduce((pre, cur) => {
         return pre.then(() => {
             return iterator(cur);
@@ -6,7 +6,7 @@ var whileAsync = function(list, iterator) {
     }, Promise.resolve());
 }
 
-var promiseWhile = function(condition, action) {
+var While = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
         return action().then(iter);
@@ -14,19 +14,19 @@ var promiseWhile = function(condition, action) {
     return iter();
 }
 
-var parallelPromise = function(hasNext, next, N) {
+var parallel = function(hasNext, next, N) {
     var iter = function() {
         if(!hasNext()) return Promise.resolve();
         return next().then(iter);
     }
     var handler = [];
     var i = 0;
-    while(i < N && hasNext) {
+    while(i < N && hasNext()) {
         handler[i++] = iter();
     }
     return Promise.all(handler);
 }
 
-exports.whileAsync = whileAsync;
-exports.promiseWhile = promiseWhile;
-exports.parallelPromise = parallelPromise;
+exports.forEach = forEach;
+exports.while = While;
+exports.parallel = parallel;

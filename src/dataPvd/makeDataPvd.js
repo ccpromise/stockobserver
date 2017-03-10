@@ -34,6 +34,7 @@ function pvdID(ldp) {
     return pvdList[ldp.type].pvdID(ldp.pack);
 }
 
+var pendingObj = {};
 function makePvd(ldp) {
     return new Promise((resolve, reject) => {
         try {
@@ -42,11 +43,15 @@ function makePvd(ldp) {
             else {
                 var id = pvdID(ldp);
                 if(id in existObj) resolve(existObj[id]);
+                else if(id in pendingObj) resolve(pendingObj[id].then((obj) => { return obj; }));
                 else {
-                    pvdList[ldp.type].makePvd(ldp.pack, id).then((createdObj) => {
+                    var promise = pvdList[ldp.type].makePvd(ldp.pack, id);
+                    promise.then((createdObj) => {
                         if(ldp.type in cachedPvdList) existObj[id] = createdObj;
+                        delete pendingObj[id];
                         resolve(createdObj);
                     }).catch(reject);
+                    pendingObj[id] = promise;
                 }
             }
         }

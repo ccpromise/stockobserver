@@ -7,3 +7,4 @@ exports.statistics = require('./statistics');
 exports.file = require('./file');
 exports.cache = require('./cache');
 exports.async = require('./async');
+exports.dataStructure = require('./dataStructure');

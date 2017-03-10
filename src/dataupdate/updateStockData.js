@@ -1,7 +1,6 @@
 var getStockList = require('./getStockList');
-var config = require('../config');
-var stockDir = config.stockDataDir;
-var parallelRequestN = config.parallelRequestN;
+var stockDir = require('../config').stockDataDir;
+var parallelN = 5;
 var utility = require('../utility');
 var file = utility.file;
 var time = utility.time;
@@ -42,10 +41,11 @@ function updateStockData() {
 */
 function updateStockData() {
     return getStockList().then((stockList) => {
+        /*
         var i = 0;
         var len = stockList.length;
 
-        return async.parallelPromise(() => {
+        return async.parallel(() => {
             return i < len;
         }, () => {
             var j = i;
@@ -72,13 +72,13 @@ function updateStockData() {
                     return file.writeFile(filePath, JSON.stringify(data)).then(() => console.log(secID, ' updated'));
                 });
             }).catch((err) => { console.log(stockList[j], ' error: ', err.message); });
-        }, parallelRequestN);
-
-        /* version1 for while
+        }, parallelN);
+        */
+        /*// version1 for while
         var i = 0;
         var len = stockList.length;
 
-        return async.promiseWhile(() => {
+        return async.while(() => {
             return i < len;
         }, () => {
             return Promise.resolve().then(() => {
@@ -100,14 +100,13 @@ function updateStockData() {
                     }
                     throw err;
                 }).then((data) => {
-                    console.log(data);
                     console.log(secID, ' updated');
                     return file.writeFile(filePath, JSON.stringify(data));
                 });
             }).catch((err) => { console.log(stockList[i], ' error: ', err.message); }).then(() => i++);
         });
         */
-        /* version 2 for while
+        ///* version 2 for while
         var iterator = function(secID) {
             var filePath = path.join(stockDir, secID + '.json');
             return file.readFile(filePath).then((stockData) => {
@@ -132,8 +131,8 @@ function updateStockData() {
                 console.log(secID, ' error: ', err.message);
             });
         }
-        return async.whileAsync(stockList, iterator);
-        */
+        return async.forEach(stockList, iterator);
+        //*/
     });
 }
 

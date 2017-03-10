@@ -2,7 +2,7 @@
 var makeDataPvd = require('../../src/dataPvd').makePvd;
 var assert = require('assert');
 
-/*
+
 var ldp1 = {'type': 'end', 'pack': '000001.XSHE'};
 var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 5}};
 makeDataPvd(ldp1).then((end) => {
@@ -30,9 +30,16 @@ var ldp8 = {'type': 'offset', 'pack': {'pvd': ldp1, 'N': -2}};
 makeDataPvd(ldp8).then((offset) => {
     //console.log('offset done');
 }).catch((err) => console.log('find error: ', err));
-*/
+
+/*
 var ldp1 = {'type': 'end', 'pack': '000001.XSHE'};
 var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 5}};
+var a = makeDataPvd(ldp2);
+var b = makeDataPvd(ldp2);
+
+Promise.all([a,b]).then((obj) => console.log(obj[0] === obj[1]));
+
+
 makeDataPvd(ldp1).then((end) => {
     var ldp3 = {'type': 'ma', 'pack': {'pvd': end, 'N': 5}};
     return makeDataPvd(ldp3).then(() => makeDataPvd(ldp3));
@@ -40,3 +47,4 @@ makeDataPvd(ldp1).then((end) => {
 var end1 = null;
 makeDataPvd(ldp2).then((end) => {end1 = end;}); //pvd1
 makeDataPvd(ldp2).then((end) => {console.log(end === end1)}); //pvd2
+*/

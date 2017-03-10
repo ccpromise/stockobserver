@@ -13,15 +13,18 @@ exports.now = function() {
     return moment();
 }
 
-exports.today = function() {
-    return moment().format('YYYYMMDD');
+exports.today = function(format) {
+    format = format || 'YYYYMMDD';
+    return moment().format(format);
 }
 
-exports.tomorrow = function() {
+exports.tomorrow = function(format) {
+    format = format || 'YYYYMMDD';
     return moment().add(1, 'day').format('YYYYMMDD');
 }
 
-exports.nextDay = function(date) {
+exports.nextDay = function(date, format) {
+    format = format || 'YYYYMMDD';
     return moment(date).add(1, 'day').format('YYYYMMDD');
 }
 
