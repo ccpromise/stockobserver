@@ -32,7 +32,8 @@ database.prototype.createCollection = function(name) {
 
 database.prototype.createIndex = function(index, opt, collName) {
     return new Promise((resolve, reject) => {
-        this.collections[collName].then((coll) => {
+        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
+        else this.collections[collName].then((coll) => {
             coll.createIndex(index, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
@@ -43,7 +44,8 @@ database.prototype.createIndex = function(index, opt, collName) {
 
 database.prototype.insert = function(doc, collName) {
     return new Promise((resolve, reject) => {
-        this.collections[collName].then((coll) => {
+        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
+        else this.collections[collName].then((coll) => {
             coll.insert(doc, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
@@ -54,7 +56,8 @@ database.prototype.insert = function(doc, collName) {
 
 database.prototype.update = function(selector, doc, opt, collName) {
     return new Promise((resolve, reject) => {
-        this.collections[collName].then((coll) => {
+        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
+        else this.collections[collName].then((coll) => {
             coll.update(selector, doc, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
@@ -65,11 +68,12 @@ database.prototype.update = function(selector, doc, opt, collName) {
 
 database.prototype.find = function(filter, field, collName) {
     return new Promise((resolve, reject) => {
-        this.collections[collName].then((coll) => {
+        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
+        else this.collections[collName].then((coll) => {
             coll.find(filter, field).toArray(err, r) => {
                 if(err) reject(err);
                 else resolve(r);
-            })
+            }
         }).catch(err);
     })
 }
@@ -83,6 +87,7 @@ function StockUpdateDb(url) {
 
 StockUpdateDb.prototype.getSyncDate(secID) {
     return this.find({'secID': secID}, {'date': true}, 'syncDate').then((arr) => {
+        if(arr.length == 0) return '19900101';
         return arr[0].date;
     })
 }
