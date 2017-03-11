@@ -31,7 +31,7 @@ makeDataPvd(ldp8).then((offset) => {
     //console.log('offset done');
 }).catch((err) => console.log('find error: ', err));
 
-/*
+
 var ldp1 = {'type': 'end', 'pack': '000001.XSHE'};
 var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 5}};
 var a = makeDataPvd(ldp2);
@@ -44,7 +44,3 @@ makeDataPvd(ldp1).then((end) => {
     var ldp3 = {'type': 'ma', 'pack': {'pvd': end, 'N': 5}};
     return makeDataPvd(ldp3).then(() => makeDataPvd(ldp3));
 });
-var end1 = null;
-makeDataPvd(ldp2).then((end) => {end1 = end;}); //pvd1
-makeDataPvd(ldp2).then((end) => {console.log(end === end1)}); //pvd2
-*/

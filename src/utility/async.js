@@ -6,7 +6,7 @@ var forEach = function(list, iterator) {
     }, Promise.resolve());
 }
 
-var While = function(condition, action) {
+var whileAsync = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
         return action().then(iter);
@@ -28,5 +28,5 @@ var parallel = function(hasNext, next, N) {
 }
 
 exports.forEach = forEach;
-exports.while = While;
+exports.while = whileAsync;
 exports.parallel = parallel;

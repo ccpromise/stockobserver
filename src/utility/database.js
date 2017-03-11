@@ -1,39 +1,45 @@
 
 var MongoClient = require('mongodb').MongoClient;
+var validate = require('../utility').validate;
 
-///// part of database.js
-function database(url) {
+function Database(url) {
     this.url = url;
-    this.db = this.connect();
-    this.collections = {};
-}
-
-database.prototype.connect = function() {
-    return new Promise((resolve, reject) => {
-        MongoClient.connect(this.url, (err, r) => {
-            if(err) reject(err);
-            else resolve(r);
-        })
-    })
-}
-
-database.prototype.createCollection = function(name) {
-    var coll = new Promise((resolve, reject) => {
-        this.db.then((db) => {
-            db.createCollection(name, (err, r) => {
+    this.db = function() {
+        return new Promise((resolve, reject) => {
+            MongoClient.connect(this.url, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
-            })
-        }).catch(reject);
-    });
-    this.collections[name] = coll;
+            });
+        });
+    }
+    this.collectionMap = {};
+}
+
+Database.prototype.getCollection = function(name, fileds) {
+    if(name in this.collectionMap) return this.collectionMap[name];
+    var coll = new Collection(function() {
+        return new Promise((resolve, reject) => {
+            this.db().then((db) => {
+                db.createCollection(name, (err, r) => {
+                    if(err) reject(err);
+                    else resolve(r);
+                })
+            }).catch(reject);
+        });
+    }, fileds);
+    this.collectionMap[name] = coll;
     return coll;
 }
 
-database.prototype.createIndex = function(index, opt, collName) {
+function Collection(coll, defaultFields) {
+    this.collection = coll;
+    this.defaultFields = defaultFields;
+}
+
+Collection.prototype.createIndex = function(index, opt) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
     return new Promise((resolve, reject) => {
-        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
-        else this.collections[collName].then((coll) => {
+        this.collection.then((coll) => {
             coll.createIndex(index, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
@@ -42,10 +48,10 @@ database.prototype.createIndex = function(index, opt, collName) {
     })
 }
 
-database.prototype.insert = function(doc, collName) {
+Collection.prototype.insert = function(doc) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
     return new Promise((resolve, reject) => {
-        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
-        else this.collections[collName].then((coll) => {
+        this.collection.then((coll) => {
             coll.insert(doc, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
@@ -54,66 +60,65 @@ database.prototype.insert = function(doc, collName) {
     })
 }
 
-database.prototype.update = function(selector, doc, opt, collName) {
+Collection.prototype.update = function(selector, doc, opt) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
     return new Promise((resolve, reject) => {
-        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
-        else this.collections[collName].then((coll) => {
+        this.collection.then((coll) => {
             coll.update(selector, doc, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             })
-        }).catch(resolve);
+        }).catch(reject);
     });
 }
 
-database.prototype.find = function(filter, field, collName) {
+Collection.prototype.remove = function(selector, opt) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
     return new Promise((resolve, reject) => {
-        if(!(collName in this.collections)) resolve(new Error('collection ', collName, ' not exists.'));
-        else this.collections[collName].then((coll) => {
-            coll.find(filter, field).toArray(err, r) => {
+        this.collection.then((coll) => {
+            coll.remove(selector, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        }).catch(reject);
+    });
+}
+
+Collection.prototype.find = function(filter, field) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
+    field = field : this.defaultFields;
+    return new Promise((resolve, reject) => {
+        this.collection.then((coll) => {
+            coll.find(filter, ield).toArray(err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             }
-        }).catch(err);
+        }).catch(reject);
     })
 }
 
-
-///////// part of StockUpdateDb
-function StockUpdateDb(url) {
-    database.call(this, url);
-    this.createCollection('syncDate');
-}
-
-StockUpdateDb.prototype.getSyncDate(secID) {
-    return this.find({'secID': secID}, {'date': true}, 'syncDate').then((arr) => {
-        if(arr.length == 0) return '19900101';
-        return arr[0].date;
+Collection.prototype.findAndModify = function(filter, sort, field, opt) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
+    return new Promise((resolve, reject) => {
+        this.collection.then((coll) => {
+            coll.findAndModify(filter, sort, field, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            })
+        }).catch(reject);
     })
 }
 
-//////// part of dispatcher
-var mongdbUrl = 'XXXX'
-function dispatcher() {
-    this.db = new StockUpdateDb(mongodbUrl);
-    this.setProducer();
+Collection.prototype.findOneAndUpdate = function(filter, update, opt) {
+    if(validate.isFunction(this.collection)) this.collection = this.collection();
+    return new Promise((resolve, reject) => {
+        this.collection.then((coll) => {
+            coll.findOneAndUpdate(filter, update, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            })
+        }).catch(reject);
+    })
 }
 
-dispatcher.prototype.setProducer = function(){
-    var loop = function() {
-        setTimeout(() => {
-            var syncTime = time.today('YYYY-MM-DD') + ' ' + this.syncTime;
-            if(time.isAfter(time.now(), syncTime)) {
-                getStockList.then((list) => {
-                    var promises = list.map((secID) => {
-                        return this.db.getSyncDate(secID).then((date) => {
-                            //omit
-                        })
-                    })
-                })
-            }
-            else loop();
-        }, 5000);
-    }
-    loop();
-}
+module.exports = Database;

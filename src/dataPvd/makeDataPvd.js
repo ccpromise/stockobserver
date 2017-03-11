@@ -34,8 +34,19 @@ function pvdID(ldp) {
     return pvdList[ldp.type].pvdID(ldp.pack);
 }
 
-var pendingObj = {};
+var pvdPromiseMap = {};
 function makePvd(ldp) {
+    return Promise.resolve().then(() => {
+        if(validate.isDataPvd(ldp)) return ldp;
+        if(!checkldp(ldp)) throw new Error('invalid literal dp');
+        var id = pvdID(ldp);
+        if(id in pvdPromiseMap) return pvdPromiseMap[id];
+        var promise = pvdList[ldp.type].makePvd(ldp.pack, id);
+        if(ldp.type in cachedPvdList) pvdPromiseMap[id] = promise;
+        return promise;
+    })
+}
+    /*
     return new Promise((resolve, reject) => {
         try {
             if(validate.isDataPvd(ldp)) resolve(ldp);
@@ -43,7 +54,7 @@ function makePvd(ldp) {
             else {
                 var id = pvdID(ldp);
                 if(id in existObj) resolve(existObj[id]);
-                else if(id in pendingObj) resolve(pendingObj[id].then((obj) => { return obj; }));
+                else if(id in pendingObj) resolve(pendingObj[id]);
                 else {
                     var promise = pvdList[ldp.type].makePvd(ldp.pack, id);
                     promise.then((createdObj) => {
@@ -59,7 +70,8 @@ function makePvd(ldp) {
             reject(err);
         }
     });
-}
+    */
+
 
 exports.checkldp= checkldp;
 exports.pvdID = pvdID;

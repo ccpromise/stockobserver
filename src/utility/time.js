@@ -13,6 +13,10 @@ exports.now = function() {
     return moment();
 }
 
+exports.valueOf = function(time) {
+    return moment(time).valueOf();
+}
+
 exports.today = function(format) {
     format = format || 'YYYYMMDD';
     return moment().format(format);
