@@ -1,68 +1,67 @@
 
 var getStockList = require('./getStockList');
 var config = require('../config');
+var taskStatus = config.constants.taskStatus;
 var db = require('./db');
+var time = require('../utility').time;
+var isConnected = false;
 
 function dispatcher() {
+    this.db = db.database;
     this.syncDate = db.syncDate;
     this.task = db.task;
     this.syncTime = config.stockSyncTime;
-    this.timeout = config.stockTimeout;
-    setProducer();
-    clearTimeout();
+    this.lastSyncDate = time.yesterday();
+    this.setProducer().catch((err) => console.log(err));
+    this.clearTimeout().catch((err) => console.log(err));
+    isConnected = true;
 }
 
-function setProducer() {
-    var loop = function() {
+dispatcher.prototype.setProducer = function () {
+    var loop = function(that) {
         setTimeout(() => {
-            var syncTime = time.today('YYYY-MM-DD') + ' ' + this.syncTime;
-            if(time.isAfter(time.now(), syncTime)) {
-                getStockList.then((list) => {
-                    var promises = list.map((secID) => {
-                        return this.syncDate.get(secID).then((date) => {
-                            if(time.isAfter(time.today(), date)) {
-                                // remove the task which is still prepared or processing of this secID.
-                                return this.task.remove({ 'secID': secID, { $or: [{ 'status': 0 }, { 'status': 1 }] } }).then(() => {
-                                    // insert the new task
-                                    return this.task.insertTask(secID).then(() => {
-                                        // update the task build date.
-                                        return this.syncDate.set(secID, time.today());
-                                    });
-                                });
-                            }
-                            return Promise.resolve();
-                        });
+            if(!isConnected) return;
+            var syncTime = time.today('YYYY-MM-DD') + ' ' + that.syncTime;
+            if(that.lastSyncDate !== time.today() && time.isAfter(time.now(), syncTime)) {
+                that.syncDate.find({}).then((list) => {
+                    var idArr = [];
+                    list.forEach((stock) => {
+                        if(time.isAfter(time.today(), stock.syncDate))
+                            idArr.push(stock.secID);
                     });
-                    return Promise.all(promises);
-                }).then(loop);
+                    Promise.all([that.task.insertTask(idArr), that.syncDate.updateSyncDate(idArr)]).then(() => {
+                        that.lastSyncDate = time.today();
+                        loop(that);
+                    });
+                });
             }
-            else loop();
+            else loop(that);
+        }, 5000);
+    };
+    return Promise.resolve().then(() => loop(this));
+}
+
+dispatcher.prototype.clearTimeout = function () {
+    var innerLoop = function(that) {
+        if(!isConnected) return;
+        that.task.clearTimeout().then((r) => {
+            if(r.result.nModified === 1) {
+                innerLoop(that);
+            }
+            else loop(that);
+        });
+    };
+    var loop = function(that) {
+        setTimeout(() => {
+            innerLoop(that);
         }, 5000);
     }
-    loop();
+    return Promise.resolve().then(() => loop(this));
 }
 
-function clearTimeout() {
-    var loop = function() {
-        setTimeout(() => {
-            // if status is processing and time out, set the status to ready
-            this.task.findAndModify({
-                'status': 1, 'time': { $lt time.valueOf(time.now())-this.timeout }
-            }, [['time', 1]], { $set:{ 'status': 0, 'time': time.valueOf(time.now())} }, {}).then(loop);
-        }, 300000);
-    }
-    loop();
-}
-
-dispatcher.prototype.getReadySecID = function() {
-    return this.task.findAndModify({ 'status': 0 }, { $set: { 'status': 1, 'time': time.valueOf(time.now()) } }, {}).then((r) => {
-        return r === null ? null : r.secID;
-    });
-}
-
-dispatcher.prototype.finishTask = function(secID, result, err) {
-    var setField = result === 'success' ? { 'status': 2, 'time': time.now() } : { 'status': -1, 'err': err, 'time': time.now() };
-    return this.task.findOneAndUpdate({ 'secID': secID, 'status': 1 }, { $set: setField });
+dispatcher.prototype.endConnection = function () {
+    isConnected = false;
+    return this.db.close();
 }
 
 module.exports = dispatcher;

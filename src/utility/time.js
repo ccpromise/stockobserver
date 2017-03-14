@@ -10,7 +10,7 @@ exports.getDateTs = function(date) {
 }
 
 exports.now = function() {
-    return moment();
+    return moment().format('YYYY-MM-DD HH:mm:ss');
 }
 
 exports.valueOf = function(time) {
@@ -25,6 +25,11 @@ exports.today = function(format) {
 exports.tomorrow = function(format) {
     format = format || 'YYYYMMDD';
     return moment().add(1, 'day').format('YYYYMMDD');
+}
+
+exports.yesterday = function(format) {
+    format = format || 'YYYYMMDD';
+    return moment().add(-1, 'day').format('YYYYMMDD'); // check
 }
 
 exports.nextDay = function(date, format) {

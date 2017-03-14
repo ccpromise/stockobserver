@@ -1,123 +1,205 @@
-
 var MongoClient = require('mongodb').MongoClient;
-var validate = require('../utility').validate;
+var validate = require('./validate');
 
-function Database(url) {
+function Database (url) {
     this.url = url;
-    this.db = function() {
-        return new Promise((resolve, reject) => {
-            MongoClient.connect(this.url, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
+    this.dbPromise = function() {
+        var db = null;
+        return function() {
+            db = db !== null ? db : new Promise((resolve, reject) => {
+                MongoClient.connect(url, (err, r) => {
+                    if(err) reject(err);
+                    else resolve(r);
+                });
             });
-        });
-    }
+            return db;
+        };
+    }();
     this.collectionMap = {};
-}
+};
 
-Database.prototype.getCollection = function(name, fileds) {
+Database.prototype.getCollection = function (name, fields) {
     if(name in this.collectionMap) return this.collectionMap[name];
-    var coll = new Collection(function() {
-        return new Promise((resolve, reject) => {
-            this.db().then((db) => {
+    var dbPromise = this.dbPromise;
+    var col = null;
+    var colPromise = function() {
+        col = col !== null ? col : dbPromise().then((db) => {
+            return new Promise((resolve, reject) => {
                 db.createCollection(name, (err, r) => {
                     if(err) reject(err);
                     else resolve(r);
-                })
-            }).catch(reject);
+                });
+            });
         });
-    }, fileds);
-    this.collectionMap[name] = coll;
-    return coll;
+        return col;
+    }
+    var collection = new Collection(colPromise, fields);
+    this.collectionMap[name] = collection;
+    return collection;
+};
+
+Database.prototype.close = function() {
+    return this.dbPromise().then((db) => { return db.close(); });
 }
 
-function Collection(coll, defaultFields) {
-    this.collection = coll;
+function Collection(colPromise, defaultFields) {
+    this.colPromise = colPromise;
     this.defaultFields = defaultFields;
 }
 
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number,
+// 'j': boolean,
+// 'unique': boolean,
+// 'sparse': boolean,
+// 'background': boolean,
+// 'dropDups': boolean,
+// 'min': number,
+// 'max': number,
+// 'v': number,
+// 'expireAfterSeconds': number,
+// 'name': string,
+// 'partialFilterExpression': object
+// 'collation': object
+// }
 Collection.prototype.createIndex = function(index, opt) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.createIndex(index, opt, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            })
-        }).catch(reject);
-    })
-}
-
-Collection.prototype.insert = function(doc) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.insert(doc, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            })
-        }).catch(reject);
-    })
-}
-
-Collection.prototype.update = function(selector, doc, opt) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.update(selector, doc, opt, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            })
-        }).catch(reject);
-    });
-}
-
-Collection.prototype.remove = function(selector, opt) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.remove(selector, opt, (err, r) => {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.createIndex(index, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             });
-        }).catch(reject);
+        });
     });
-}
+};
+
+// opt: {
+// 'w': number | string,
+// 'j': boolean,
+// 'serializeFunctions': boolean,
+// 'forceSeverObjectId': boolean,
+// 'bypassDocumentValidation': boolean
+// }
+Collection.prototype.insert = function(doc, opt) {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.insert(doc, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        });
+    });
+};
+
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number
+// 'j': boolean,
+// 'upsert': boolean,
+// 'multi': boolean,
+// 'bypassDocumentValidation': boolean,
+// 'collation': object
+// }
+Collection.prototype.update = function(selector, doc, opt) {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.update(selector, doc, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        });
+    });
+};
+
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number,
+// 'j': boolean,
+// 'single': boolean
+//}
+Collection.prototype.remove = function(selector, opt) {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.remove(selector, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        });
+    });
+};
 
 Collection.prototype.find = function(filter, field) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    field = field : this.defaultFields;
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.find(filter, ield).toArray(err, r) => {
+    field = field || this.defaultFields;
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.find(filter, field).toArray((err, r) => {
                 if(err) reject(err);
                 else resolve(r);
-            }
-        }).catch(reject);
-    })
-}
+            });
+        });
+    });
+};
 
-Collection.prototype.findAndModify = function(filter, sort, field, opt) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.findAndModify(filter, sort, field, opt, (err, r) => {
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number,§
+// 'j': boolean,
+// 'remove': boolean,
+// 'upsert': boolean,
+// 'new': boolean,
+// 'fields': object
+// }
+Collection.prototype.findAndModify = function(filter, field, opt) {
+    var sort = [];
+    if(validate.isObj(opt) && opt !== null && 'sort' in opt) {
+        sort = opt.sort;
+        delete opt.sort;
+    }
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.findAndModify(filter, sort, field, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        });
+    });
+};
+
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number
+// 'j': boolean,
+// 'upsert': boolean,
+// }
+Collection.prototype.updateMany = function(filter, update, opt) {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.updateMany(filter, update, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             })
-        }).catch(reject);
+        })
     })
 }
 
-Collection.prototype.findOneAndUpdate = function(filter, update, opt) {
-    if(validate.isFunction(this.collection)) this.collection = this.collection();
-    return new Promise((resolve, reject) => {
-        this.collection.then((coll) => {
-            coll.findOneAndUpdate(filter, update, opt, (err, r) => {
+// opt: {
+// 'w': number | string,
+// 'wtimeout': number,
+// 'j': boolean,
+// 'serializeFunctions': boolean,
+// 'forceSeverObjectId': boolean,
+// 'bypassDocumentValidation': boolean
+// 'ordered': boolean
+// }
+Collection.prototype.insertMany = function(docArr, opt) {
+    return this.colPromise().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.insertMany(docArr, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             })
-        }).catch(reject);
+        })
     })
 }
 

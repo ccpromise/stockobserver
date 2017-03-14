@@ -36,11 +36,11 @@ exports.isNonNegInt = function(val) {
 
 exports.isBool = function (val) {
     return typeof val === 'boolean';
-}
+};
 
 exports.isDataPvd = function (val) {
     return val instanceof DataPvd;
-}
+};
 
 exports.isStock = function(val) {
     return val['data'] && val['minTs'] && val['maxTs'] && val['id'];
