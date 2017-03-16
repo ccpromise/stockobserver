@@ -50,6 +50,10 @@ exports.isAny = function(val) {
     return true;
 }
 
+exports.isEmptyArr = function(arr) {
+    return arr instanceof Array && arr.length === 0;
+}
+
 exports.isArr = function(val) {
     return Array.isArray(val);
 }

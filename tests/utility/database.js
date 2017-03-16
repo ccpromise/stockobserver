@@ -5,7 +5,7 @@ var db = new Database('mongodb://127.0.0.1:27017');
 var col1 = db.getCollection('test_new', {'name': true});
 var col3 = db.getCollection('test_new', {'name': true});
 
-col1.update({'name': 'cc'}, {'age': 'xx'}).then((r) => {
+col1.findAndModify({'name': 'cc'}, { $set: { 'name': 'cy' }}).then((r) => {
     console.log(r);
     db.close();
 });

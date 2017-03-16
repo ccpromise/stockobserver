@@ -1,67 +1,110 @@
 
-var getStockList = require('./getStockList');
+var http = require('http');
+var stockTask = require('./stockTask');
+var url = require('url');
+
 var config = require('../config');
+var syncTime = config.stockSyncTime;
+var localPort = config.localPort;
 var taskStatus = config.constants.taskStatus;
-var db = require('./db');
-var time = require('../utility').time;
-var isConnected = false;
 
-function dispatcher() {
-    this.db = db.database;
-    this.syncDate = db.syncDate;
-    this.task = db.task;
-    this.syncTime = config.stockSyncTime;
-    this.lastSyncDate = time.yesterday();
-    this.setProducer().catch((err) => console.log(err));
-    this.clearTimeout().catch((err) => console.log(err));
-    isConnected = true;
-}
+var utility = require('../utility');
+var time = utility.time;
+var file = utility.file;
 
-dispatcher.prototype.setProducer = function () {
-    var loop = function(that) {
+var taskdb = require('./db');
+var db = taskdb.database;
+var syncDateCol = taskdb.syncDate;
+var taskCol = taskdb.task;
+
+var isConnected = true;
+var lastSyncDate = time.yesterday();
+var server = null;
+
+exports.setProducer = function() {
+    var loop = function() {
         setTimeout(() => {
             if(!isConnected) return;
-            var syncTime = time.today('YYYY-MM-DD') + ' ' + that.syncTime;
-            if(that.lastSyncDate !== time.today() && time.isAfter(time.now(), syncTime)) {
-                that.syncDate.find({}).then((list) => {
+            var syncTimeToday = time.today('YYYY-MM-DD') + ' ' + syncTime;
+            if(lastSyncDate !== time.today() && time.isAfter(time.now(), syncTimeToday)) {
+                console.log('start to produce task');
+                syncDateCol.find({}).then((list) => {
                     var idArr = [];
                     list.forEach((stock) => {
                         if(time.isAfter(time.today(), stock.syncDate))
                             idArr.push(stock.secID);
                     });
-                    Promise.all([that.task.insertTask(idArr), that.syncDate.updateSyncDate(idArr)]).then(() => {
-                        that.lastSyncDate = time.today();
-                        loop(that);
+                    console.log('insert new task for secID: ', idArr);
+                    Promise.all([taskCol.insertTask(idArr), syncDateCol.updateSyncDate(idArr)]).then(() => {
+                        console.log('update last sync date to today');
+                        lastSyncDate = time.today();
+                        loop();
                     });
                 });
             }
-            else loop(that);
+            else loop();
         }, 5000);
     };
-    return Promise.resolve().then(() => loop(this));
+    return Promise.resolve().then(() => loop());
 }
 
-dispatcher.prototype.clearTimeout = function () {
-    var innerLoop = function(that) {
+exports.clearTimeout = function() {
+    var innerLoop = function() {
         if(!isConnected) return;
-        that.task.clearTimeout().then((r) => {
+        taskCol.clearTimeout().then((r) => {
+            console.log('cleared task number: ', r.result.nModified);
             if(r.result.nModified === 1) {
-                innerLoop(that);
+                innerLoop();
             }
-            else loop(that);
+            else loop();
         });
     };
-    var loop = function(that) {
+    var loop = function() {
         setTimeout(() => {
-            innerLoop(that);
+            console.log('start to clear time out task.')
+            innerLoop();
         }, 5000);
     }
-    return Promise.resolve().then(() => loop(this));
+    return Promise.resolve().then(() => loop());
 }
 
-dispatcher.prototype.endConnection = function () {
+exports.createServer = function() {
+    server = http.createServer((req, res) => {
+        var pathname = url.parse(req.url).pathname;
+        if(pathname === '/getReadyTask.json') {
+            taskCol.findReadyTask().then((r) => {
+                res.writeHead(200, { 'Content-type': 'application/json'});
+                res.write(JSON.stringify(r));
+                res.end();
+            })
+        }
+        else if(pathname === '/updateStockData.js') {
+            res.writeHead(200, { 'Content-type': 'text/plain'});
+            res.write(__dirname + '/updateStockData.js');
+            res.end();
+        }
+        else if(pathname === '/upload') {
+            var body = '';
+            req.on('data', (data) => {
+                body += data;
+            });
+            req.on('end', function () {
+                var result = JSON.parse(body);
+                taskCol.updateTask(result);
+            });
+            res.writeHead(200);
+            res.end();
+        }
+    });
+    server.listen(localPort);
+    console.log('start to listen on port', localPort);
+}
+
+exports.endConnection = function() {
     isConnected = false;
-    return this.db.close();
+    return Promise.resolve().then(() => {
+        return db.close().then(() => {
+            server.close();
+        });
+    })
 }
-
-module.exports = dispatcher;

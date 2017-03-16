@@ -7,6 +7,7 @@ function getRequestObj(opt) {
     var host = opt.host;
     var port = opt.port || (useHttps ? 443 : 80);
     var path = opt.path || '/';
+    var method = opt.method || 'GET';
     //in case the input path is something like 'abc/qq/index.html'
     if (path[0] !== '/') path = '/' + path;
     var query = opt.query || '';
@@ -15,6 +16,7 @@ function getRequestObj(opt) {
         host: host,
         port: port,
         path: path + (query === '' ? '' : ('?' + query)),
+        method: method,
         headers: headers
     }
     if (config.isFiddler) {
@@ -36,8 +38,9 @@ exports.request = function (opt) {
             var data = [];
             res.on('data', (chunk) => { data.push(chunk); });
             res.on('end', () => { resolve(Buffer.concat(data)); });
-        });//*
-        req.on('error', (err) => reject('Error when connecting to host: ' + err.message)); //*
-        req.end();
+        });
+        req.on('error', (err) => reject('Error when connecting to host: ' + err.message));
+        if(opt.method === 'POST') req.end(opt.data);
+        else req.end();
     });
 }

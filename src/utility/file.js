@@ -1,4 +1,20 @@
 var fs = require('fs');
+var tmp = require('tmp');
+
+function createTmpFile(opt) {
+    var extend = '.txt';
+    var discardDescriptor = true;
+    if(opt !== undefined && opt !== null) {
+        extend = opt.extend || extend;
+        discardDescriptor = opt.discardDescriptor || discardDescriptor;
+    }
+    return new Promise((resolve, reject) => {
+        tmp.file({ discardDescriptor: discardDescriptor,  keep: true, postfix: extend},(err, path, fd, callback) => {
+            if(err) reject(err);
+            else resolve([path, callback]);
+        })
+    })
+}
 
 function writeFile(path, data) {
     return new Promise((resolve, reject) => {
@@ -40,3 +56,4 @@ function readFile(path) {
 exports.writeToCSV = writeToCSV;
 exports.writeFile = writeFile;
 exports.readFile = readFile;
+exports.createTmpFile = createTmpFile;

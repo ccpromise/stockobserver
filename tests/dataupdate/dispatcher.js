@@ -1,7 +1,8 @@
 
 // inital syncDate:
 var db = require('../../src/dataupdate/db');
-var dispatcher = require('../../src/dataupdate/dispatcher');
+var dis = require('../../src/dataupdate/dispatcher');
+var consumer = require('../../src/dataupdate/consumer');
 
 db.syncDate.remove({}).then((r) => {
     return db.task.remove({});
@@ -22,14 +23,17 @@ db.syncDate.remove({}).then((r) => {
         })
     })
 }).then(() => {
-    var dis = new dispatcher();
+    dis.setProducer().catch((err) => console.log(err));
+    dis.clearTimeout().catch((err) => console.log(err));
+    dis.createServer()
+    consumer.getTask().catch((err) => console.log(err));
     setTimeout(() => {
         db.syncDate.find({}).then((r) => {
             console.log(r);
             return db.task.find({});
         }).then((r) => {
-            console.log(r);
+            console.log(JSON.stringify(r));
             return dis.endConnection();
         })
-    }, 30000);
+    }, 60000);
 })

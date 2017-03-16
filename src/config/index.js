@@ -5,6 +5,8 @@ exports.access_token = '1435e205f9d203055d546b1ed7cc991f7363100bbed9c7bf9a3a0f40
 exports.isFiddler = process.argv.indexOf('-f') > -1;
 exports.fiddlerHost = '127.0.0.1';
 exports.fiddlerPort = 8888;
+exports.localHost = '127.0.0.1';
+exports.localPort = 8000;
 
 // datapvd
 exports.bollingerK = 2;
@@ -16,7 +18,7 @@ exports.stockListUrl = {
     'path': '/newsysstatic/allstocks.txt'
 };
 exports.updateTime = 'at 10:00am every weekday';
-exports.stockSyncTime = '20:00';
+exports.stockSyncTime = '15:00';
 
 // db
 exports.constants = require('./constants');

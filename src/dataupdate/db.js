@@ -34,7 +34,7 @@ task.insertTask = function(idArr) {
     var buildTask = function(id) {
         return {
             'secID': id,
-            'status': taskStatus.processing,
+            'status': taskStatus.ready,
             'time': time.valueOf(time.now()),
             'log': [{
                 'desc': 'build new',
@@ -44,6 +44,33 @@ task.insertTask = function(idArr) {
         }
     }
     return task.insertMany(idArr.map(buildTask));
+}
+
+task.findReadyTask = function() {
+    return task.findAndModify({
+        'status': taskStatus.ready
+    }, {
+        $set: { 'status': taskStatus.processing, 'time': time.valueOf(time.now()) },
+        $push: { 'log': {
+            'desc': 'task dispatched to a consumer',
+            'time': time.now(),
+            'err': null
+        }}
+    }).then((r) => {
+        return r.value === null ? {} : {
+            'id': r.value._id,
+            'secID': r.value.secID
+        }
+    });
+}
+
+task.updateTask = function(r) {
+    return task.upate({
+        '_id': r.id
+    }, {
+        $set: { 'status': r.status, 'time': time.valueOf(time.now()) },
+        $push: { 'log': r.log }
+    });
 }
 
 exports.syncDate = syncDate;
