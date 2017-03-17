@@ -3,48 +3,52 @@ var validate = require('./validate');
 
 function Database (url) {
     this.url = url;
-    this.dbPromise = function() {
-        var db = null;
-        return function() {
-            db = db !== null ? db : new Promise((resolve, reject) => {
-                MongoClient.connect(url, (err, r) => {
-                    if(err) reject(err);
-                    else resolve(r);
-                });
-            });
-            return db;
-        };
-    }();
+    this.dbPromise = null;
     this.collectionMap = {};
 };
 
-Database.prototype.getCollection = function (name, fields) {
-    if(name in this.collectionMap) return this.collectionMap[name];
-    var dbPromise = this.dbPromise;
-    var col = null;
-    var colPromise = function() {
-        col = col !== null ? col : dbPromise().then((db) => {
-            return new Promise((resolve, reject) => {
-                db.createCollection(name, (err, r) => {
-                    if(err) reject(err);
-                    else resolve(r);
-                });
+Database.prototype._getDb = function() {
+    if(this.dbPromise === null) {
+        this.dbPromise = new Promise((resolve, reject) => {
+            MongoClient.connect(this.url, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
             });
         });
-        return col;
     }
-    var collection = new Collection(colPromise, fields);
+    return this.dbPromise;
+}
+
+Database.prototype.getCollection = function (name, fields) {
+    if(name in this.collectionMap) return this.collectionMap[name];
+    var collection = new Collection(this, name, fields);
     this.collectionMap[name] = collection;
     return collection;
 };
 
 Database.prototype.close = function() {
-    return this.dbPromise().then((db) => { return db.close(); });
+    return this.dbPromise.then((db) => { return db.close(); });
 }
 
-function Collection(colPromise, defaultFields) {
-    this.colPromise = colPromise;
+function Collection(db, name, defaultFields) {
+    this.db = db;
+    this.colPromise = null;
+    this.name = name;
     this.defaultFields = defaultFields;
+}
+
+Collection.prototype._getCol = function() {
+    if(this.colPromise === null) {
+        this.colPromise = this.db._getDb().then((db) => {
+            return new Promise((resolve, reject) => {
+                db.createCollection(this.name, (err, r) => {
+                    if(err) reject(err);
+                    else resolve(r);
+                });
+            });
+        });
+    }
+    return this.colPromise;
 }
 
 // opt: {
@@ -64,7 +68,7 @@ function Collection(colPromise, defaultFields) {
 // 'collation': object
 // }
 Collection.prototype.createIndex = function(index, opt) {
-    return this.colPromise().then((col) => {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.createIndex(index, opt, (err, r) => {
                 if(err) reject(err);
@@ -82,7 +86,7 @@ Collection.prototype.createIndex = function(index, opt) {
 // 'bypassDocumentValidation': boolean
 // }
 Collection.prototype.insert = function(doc, opt) {
-    return this.colPromise().then((col) => {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.insert(doc, opt, (err, r) => {
                 if(err) reject(err);
@@ -101,10 +105,12 @@ Collection.prototype.insert = function(doc, opt) {
 // 'bypassDocumentValidation': boolean,
 // 'collation': object
 // }
-Collection.prototype.update = function(selector, doc, opt) {
-    return this.colPromise().then((col) => {
+Collection.prototype.update = function(filter, doc, opt) {
+    opt = opt || {};
+    if(opt.multi !== false) opt.multi = true;
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
-            col.update(selector, doc, opt, (err, r) => {
+            col.update(filter, doc, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             });
@@ -112,16 +118,34 @@ Collection.prototype.update = function(selector, doc, opt) {
     });
 };
 
+// ops: [
+// {'filter': , 'update': }
+// ]
+Collection.prototype.updateMany = function(ops, opt) {
+    return this._getCol().then((col) => {
+        return new Promise((resolve, reject) => {
+            var bulk = col.initializeUnorderedBulkOp();
+            ops.forEach(op => {
+                bulk.find(op.filter).update(op.update);
+            });
+            bulk.execute((err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        })
+    })
+}
+
 // opt: {
 // 'w': number | string,
 // 'wtimeout': number,
 // 'j': boolean,
 // 'single': boolean
 //}
-Collection.prototype.remove = function(selector, opt) {
-    return this.colPromise().then((col) => {
+Collection.prototype.remove = function(filter, opt) {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
-            col.remove(selector, opt, (err, r) => {
+            col.remove(filter, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             });
@@ -131,7 +155,7 @@ Collection.prototype.remove = function(selector, opt) {
 
 Collection.prototype.find = function(filter, field) {
     field = field || this.defaultFields;
-    return this.colPromise().then((col) => {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.find(filter, field).toArray((err, r) => {
                 if(err) reject(err);
@@ -151,12 +175,14 @@ Collection.prototype.find = function(filter, field) {
 // 'fields': object
 // }
 Collection.prototype.findAndModify = function(filter, field, opt) {
+    opt = opt || {};
+    if(opt.new !== false) opt.new = true;
     var sort = [];
     if(validate.isObj(opt) && opt !== null && 'sort' in opt) {
         sort = opt.sort;
         delete opt.sort;
     }
-    return this.colPromise().then((col) => {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.findAndModify(filter, sort, field, opt, (err, r) => {
                 if(err) reject(err);
@@ -168,23 +194,6 @@ Collection.prototype.findAndModify = function(filter, field, opt) {
 
 // opt: {
 // 'w': number | string,
-// 'wtimeout': number
-// 'j': boolean,
-// 'upsert': boolean,
-// }
-Collection.prototype.updateMany = function(filter, update, opt) {
-    return this.colPromise().then((col) => {
-        return new Promise((resolve, reject) => {
-            col.updateMany(filter, update, opt, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            })
-        })
-    })
-}
-
-// opt: {
-// 'w': number | string,
 // 'wtimeout': number,
 // 'j': boolean,
 // 'serializeFunctions': boolean,
@@ -193,7 +202,7 @@ Collection.prototype.updateMany = function(filter, update, opt) {
 // 'ordered': boolean
 // }
 Collection.prototype.insertMany = function(docArr, opt) {
-    return this.colPromise().then((col) => {
+    return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.insertMany(docArr, opt, (err, r) => {
                 if(err) reject(err);

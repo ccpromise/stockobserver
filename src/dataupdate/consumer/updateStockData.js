@@ -1,20 +1,21 @@
 
-var stockDir = require('../config').stockDataDir;
-var utility = require('../utility');
+var stockDir = require('../../config').stockDataDir;
+var utility = require('../../utility');
 var file = utility.file;
 var time = utility.time;
 var path = require('path');
-var getHistoryData = require('../datasrc/wmcloud').getHistoryData;
+var getHistoryData = require('../../datasrc/wmcloud').getHistoryData;
 
 module.exports = function(secID) {
     var filePath = path.join(stockDir, secID + '.json');
     return file.readFile(filePath).then((stockData) => {
         stockData = JSON.parse(stockData.toString());
-        var nextDay = time.nextDay(stockData.maxDay);
-        return getHistoryData(secID, nextDay).then((newData) => {
-            stockData.maxDay = newData.maxDay;
+        var nextDay = time.nextDay(time.createTime(stockData.maxDay)); //maxDay: YYYY-MM-DD
+        return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
+            stockData.maxDay = time.format(newData.maxDay, 'YYYY-MM-DD'); // newData: YYYY-MM-DD
             for(date in newData.data) {
-                stockData.data[date] = newData.data[date];
+                var formatDate = time.format(date, 'YYYY-MM-DD');
+                stockData.data[formatDate] = newData.data[date];
             }
             return stockData;
         });
@@ -24,9 +25,6 @@ module.exports = function(secID) {
         }
         throw err;
     }).then((data) => {
-        console.log(secID, ' updated');
         return file.writeFile(filePath, JSON.stringify(data));
-    }, (err) => {
-        console.log(secID, ' error: ', err.message);
     });
 }

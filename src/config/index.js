@@ -18,9 +18,11 @@ exports.stockListUrl = {
     'path': '/newsysstatic/allstocks.txt'
 };
 exports.updateTime = 'at 10:00am every weekday';
-exports.stockSyncTime = '15:00';
+exports.stockSyncTime = {
+    hour: 11,
+    minute: 0
+};
 
 // db
-exports.constants = require('./constants');
-exports.maxTaskDuration = 10000;
+exports.maxTaskDuration = 15000;
 exports.mongoUrl = 'mongodb://localhost:27017/myproject';

@@ -15,7 +15,7 @@ var property = ['o', 'e', 'h', 'l', 'x', 'v'];
 exports.getHistoryData = function(secID, beginDate, endDate) {
     try {
         beginDate = beginDate || '19900101';
-        endDate = endDate || time.today();
+        endDate = endDate || time.format(time.today(), 'YYYYMMDD');
         var query = clone(queryPattern);
         var fields = ['tradeDate', 'openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol'];
         query.secID = secID;
@@ -24,11 +24,11 @@ exports.getHistoryData = function(secID, beginDate, endDate) {
         query.endDate = endDate;
         return getMktEquad(query).then((obj) => {
             if(obj.retCode != 1) throw new Error(obj.retMsg);
-            var minDay = time.today();
-            var maxDay = '19900101';
+            var minDay = time.format(time.today(), 'YYYY-MM-DD');
+            var maxDay = '1990-01-01';
             var tradeData = obj.data.reduce((pre, cur) => {
-                var date = time.formatDate(cur['tradeDate'], 'YYYYMMDD');
-                minDay = time.isBefore(minDay, date) ? minDay : date;
+                var date = time.format(cur['tradeDate'], 'YYYY-MM-DD');
+                minDay = time.isAfter(date, minDay) ? minDay : date;
                 maxDay = time.isAfter(maxDay, date) ? maxDay : date;
                 pre[date] = {};
                 for(var i = 0; i < 6; i++)

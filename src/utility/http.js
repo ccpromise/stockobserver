@@ -40,7 +40,10 @@ exports.request = function (opt) {
             res.on('end', () => { resolve(Buffer.concat(data)); });
         });
         req.on('error', (err) => reject('Error when connecting to host: ' + err.message));
-        if(opt.method === 'POST') req.end(opt.data);
+        if(opt.method === 'POST') {
+            console.log('requestObj of POST: ', requestObj);
+            req.end(opt.data);
+        }
         else req.end();
     });
 }
