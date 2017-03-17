@@ -62,3 +62,5 @@ exports.getTradeDateData = function(tradeDate) {
         }, {});
     });
 };
+
+exports.getSecID = require('./getSecID');

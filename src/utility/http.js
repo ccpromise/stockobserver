@@ -34,14 +34,13 @@ exports.request = function (opt) {
         var useHttps = opt.useHttps || false;
         //if using fiddler, the request to fiddler must be http
         //its final protocal is specified in "path"
-        var req = (useHttps && !config.isFiddler ? https : http).get(requestObj, (res) => {
+        var req = (useHttps && !config.isFiddler ? https : http).request(requestObj, (res) => {
             var data = [];
             res.on('data', (chunk) => { data.push(chunk); });
             res.on('end', () => { resolve(Buffer.concat(data)); });
         });
-        req.on('error', (err) => reject('Error when connecting to host: ' + err.message));
+        req.on('error', reject);
         if(opt.method === 'POST') {
-            console.log('requestObj of POST: ', requestObj);
             req.end(opt.data);
         }
         else req.end();

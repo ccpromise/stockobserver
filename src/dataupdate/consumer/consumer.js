@@ -9,26 +9,19 @@ var taskStatus = require('../../constants').taskStatus;
 var updateStockData = require('./updateStockData');
 var waitTime = config.waitTime;
 
-var getTask = function() {
+var run = function() {
     var len = waitTime.length;
     var i = 0;
     var loop = function() {
         setTimeout(() => {
-            console.log('waiting time: ', waitTime[i])
             getReadyTask().then((task) => {
-                if(task === null) {
-                    i = (i === len - 1 ? i : i + 1);
-                    loop();
-                }
-                else execute(task).then(() => {
-                    i = 0;
-                    loop();
-                });
-            });
+                if(task === null) i = (i === len - 1 ? i : i + 1);
+                else return execute(task).then(() => i = 0);
+            }).then(() => loop());
         }, waitTime[i]);
     }
-    return Promise.resolve().then(() => { return loop(); });
-}();
+    return Promise.resolve().then(loop);
+};
 
 var execute = function(task) {
     var id = task.id;
@@ -58,7 +51,7 @@ var execute = function(task) {
     }).then((res) => {
         console.log('task result: ', res);
         return sendResult(res);
-    });
+    }).catch((err) => console.log(err));
 }
 
 // http
@@ -66,7 +59,7 @@ var getReadyTask = function() {
     var opt = {
         host: config.localHost,
         port: config.localPort,
-        path: '/getReadyTask.json'
+        path: '/dispatch'
     };
     return http.request(opt).then((data) => {
         return JSON.parse(data.toString());
@@ -82,9 +75,10 @@ var sendResult = function(data) {
         method: 'POST',
         data: postData,
         headers: {
-            'content-type': 'application/json',
-            'content-length': Buffer.byteLength(postData)
+            'content-type': 'application/json'
         }
     }
     return http.request(opt);
 }
+
+run();

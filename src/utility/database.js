@@ -26,10 +26,6 @@ Database.prototype.getCollection = function (name, fields) {
     return collection;
 };
 
-Database.prototype.close = function() {
-    return this.dbPromise.then((db) => { return db.close(); });
-}
-
 function Collection(db, name, defaultFields) {
     this.db = db;
     this.colPromise = null;
@@ -118,15 +114,39 @@ Collection.prototype.update = function(filter, doc, opt) {
     });
 };
 
+Collection.prototype.upsert = function(filter, doc, opt) {
+    opt = opt || {};
+    opt.upsert = true;
+    return this.update(filter, doc, opt);
+}
+
 // ops: [
 // {'filter': , 'update': }
 // ]
-Collection.prototype.updateMany = function(ops, opt) {
+Collection.prototype.updateMany = function(ops) {
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             var bulk = col.initializeUnorderedBulkOp();
             ops.forEach(op => {
                 bulk.find(op.filter).update(op.update);
+            });
+            bulk.execute((err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            });
+        })
+    })
+}
+
+// ops: [
+// {'filter': , 'update': }
+// ]
+Collection.prototype.upsertMany = function(ops) {
+    return this._getCol().then((col) => {
+        return new Promise((resolve, reject) => {
+            var bulk = col.initializeUnorderedBulkOp();
+            ops.forEach(op => {
+                bulk.find(op.filter).upsert().update(op.update);
             });
             bulk.execute((err, r) => {
                 if(err) reject(err);
@@ -164,6 +184,43 @@ Collection.prototype.find = function(filter, field) {
         });
     });
 };
+
+// opt: {
+// limit: number,
+// sort: array|object,
+// fields: object,
+// skip: number,
+// hit: object,
+// explain: boolean,
+// snapshot: boolean,
+// timeout: boolean,
+// tailable: boolen,
+// batchSize: number,
+// returnKey: boolean,
+// maxScan: number,
+// min: number,
+// max: number,
+// showDiskLoc: boolean,
+// commnet: string,
+// raw: boolean,
+// promoteLongs: boolean,
+// promoteValue: boolean,
+// promoteBuffers: boolean,
+// readPreference: string
+// partial: boolean,
+// maxTimeMS: number,
+// collation: object
+// }
+Collection.prototype.findOne = function(filter, opt) {
+    return this._getCol().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.findOne(filter, opt, (err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            })
+        })
+    })
+}
 
 // opt: {
 // 'w': number | string,

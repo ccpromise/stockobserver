@@ -10,9 +10,9 @@ module.exports = function(secID) {
     var filePath = path.join(stockDir, secID + '.json');
     return file.readFile(filePath).then((stockData) => {
         stockData = JSON.parse(stockData.toString());
-        var nextDay = time.nextDay(time.createTime(stockData.maxDay)); //maxDay: YYYY-MM-DD
+        var nextDay = time.nextDay(time.createDate(stockData.maxDay));
         return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
-            stockData.maxDay = time.format(newData.maxDay, 'YYYY-MM-DD'); // newData: YYYY-MM-DD
+            stockData.maxDay = time.format(newData.maxDay, 'YYYY-MM-DD'); 
             for(date in newData.data) {
                 var formatDate = time.format(date, 'YYYY-MM-DD');
                 stockData.data[formatDate] = newData.data[date];

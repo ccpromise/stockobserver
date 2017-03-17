@@ -5,10 +5,10 @@ var fs = require('fs');
 
 wmcloud.getHistoryData('000001.XSHE').then((data) => {
     var res = {};
-    console.log(data);
     for(date in data.data) {
-        res[time.getDateTs(date)] = data[date];
+        res[time.getTs(date)] = data.data[date];
     }
+    console.log(res);
     fs.writeFile('./data.txt', JSON.stringify(res), (err) => {
         console.log('done!');
     })

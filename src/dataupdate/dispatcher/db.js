@@ -2,7 +2,6 @@
 var utility = require('../../utility');
 var config = require('../../config');
 var taskStatus = require('../../constants').taskStatus;
-var getStockList = require('./getStockList');
 var Database = utility.database;
 var time = utility.time;
 var mongoUrl = config.mongoUrl;
@@ -12,37 +11,10 @@ var db = new Database(mongoUrl);
 var syncDateCol = db.getCollection('syncDateCol', { 'secID': true, 'syncDate': true });
 var taskCol = db.getCollection('taskCol', { 'secID': true, 'status': true, 'lastProcessingTime': true, 'log': true });
 
-// test inital
-/*
-syncDateCol.remove({}).then(() => {
-    taskCol.remove({});
-    syncDateCol.initial().then(() => {
-        syncDateCol.find({}).then((r) => {
-            console.log(r);
-        }).then(() => {
-            taskCol.find({}).then((r) => {
-                console.log(r);
-            })
-        })
-    })
-})
-
-syncDateCol.initial = function() {
-    return getStockList().then((list) => {
-        function buildSyncDate(secID) {
-            return {
-                'secID': secID,
-                'syncDate': '1990-01-01'
-            };
-        };
-        return syncDateCol.insertMany(list.map(buildSyncDate));
-    });
-};
-*/
-
-syncDateCol.updateSyncDate = function(idArr, date) {
-    return syncDateCol.update({ 'secID': { $in: idArr } }, { $set: { 'syncDate': date } });
-}
+// for test
+syncDateCol.remove({});
+taskCol.remove({});
+//taskCol.find({}).then((r) => console.log(JSON.stringify(r)));
 
 taskCol.clearTimeout = function() {
     return taskCol.update({

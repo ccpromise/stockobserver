@@ -50,7 +50,8 @@ exports.isAfter = function(day1, day2) {
 */
 
 
-exports.createTime = function(x) {
+exports.createDate = function(x) {
+    x = moment(x).format('YYYY-MM-DD');
     return new Date(x);
 }
 
@@ -60,7 +61,7 @@ exports.now = function() {
 
 exports.today = function() {
     var x = new Date();
-    x.setHours(0, 0, 0, 0);
+    x.setUTCHours(0, 0, 0, 0);
     return x
 }
 
@@ -79,31 +80,31 @@ exports.getDate = function(x) {
     return xDate.getDate() + 1;
 }
 
-exports.setHours = function(x, hour) {
+exports.setUTCHours = function(x, hour) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
-    x.setHours(hour);
+    x.setUTCHours(hour);
 }
 
-exports.setMinutes = function(x, minutes) {
+exports.setUTCMinutes = function(x, minutes) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
-    x.setMinutes(minutes);
+    x.setUTCMinutes(minutes);
 }
 
-exports.setMilliseconds = function(x, milliseconds) {
+exports.setUTCMilliseconds = function(x, milliseconds) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
-    x.setMilliseconds(milliseconds);
+    x.setUTCMilliseconds(milliseconds);
 }
 
 exports.tomorrow = function() {
     var x = new Date();
-    x.setHours(0, 0, 0, 0);
+    x.setUTCHours(0, 0, 0, 0);
     x.setDate(x.getDate() + 1);
     return x;
 }
 
 exports.yesterday = function() {
     var x = new Date();
-    x.setHours(0, 0, 0, 0);
+    x.setUTCHours(0, 0, 0, 0);
     x.setDate(x.getDate() - 1);
     return x;
 }
