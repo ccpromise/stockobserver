@@ -77,7 +77,7 @@ taskCol.findReadyTask = function() {
             'err': null
         }}
     }).then((r) => {
-        return r.value === null ? {} : {
+        return r.value === null ? null : {
             'id': r.value._id,
             'secID': r.value.secID,
             'lastProcessedTs': r.value.lastProcessedTs

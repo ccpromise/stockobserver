@@ -12,7 +12,7 @@ var getTask = function() {
     var loop = function() {
         setTimeout(() => {
             getReadyTask().then((task) => {
-                if(!('secID' in task)) loop();
+                if(task === null) loop();
                 else execute(task).then(() => loop())
             });
         }, 5000);
