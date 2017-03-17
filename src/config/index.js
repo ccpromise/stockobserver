@@ -24,5 +24,8 @@ exports.stockSyncTime = {
 };
 
 // db
-exports.maxTaskDuration = 15000;
+exports.maxTaskDuration = 30000;
 exports.mongoUrl = 'mongodb://localhost:27017/myproject';
+
+// consumer
+exports.waitTime = [0, 5000, 10000, 15000, 20000];

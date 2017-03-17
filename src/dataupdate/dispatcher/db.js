@@ -12,13 +12,19 @@ var db = new Database(mongoUrl);
 var syncDateCol = db.getCollection('syncDateCol', { 'secID': true, 'syncDate': true });
 var taskCol = db.getCollection('taskCol', { 'secID': true, 'status': true, 'lastProcessingTime': true, 'log': true });
 
-// test
-//syncDateCol.find({}).then((r) => console.log(r));
-//taskCol.find({}).then((r) => console.log(r));
-
-// test
+// test inital
+/*
 syncDateCol.remove({}).then(() => {
-    syncDateCol.initial();
+    taskCol.remove({});
+    syncDateCol.initial().then(() => {
+        syncDateCol.find({}).then((r) => {
+            console.log(r);
+        }).then(() => {
+            taskCol.find({}).then((r) => {
+                console.log(r);
+            })
+        })
+    })
 })
 
 syncDateCol.initial = function() {
@@ -32,7 +38,7 @@ syncDateCol.initial = function() {
         return syncDateCol.insertMany(list.map(buildSyncDate));
     });
 };
-
+*/
 
 syncDateCol.updateSyncDate = function(idArr, date) {
     return syncDateCol.update({ 'secID': { $in: idArr } }, { $set: { 'syncDate': date } });

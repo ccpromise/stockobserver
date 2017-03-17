@@ -7,15 +7,25 @@ var time = utility.time;
 var http = utility.http;
 var taskStatus = require('../../constants').taskStatus;
 var updateStockData = require('./updateStockData');
+var waitTime = config.waitTime;
 
 var getTask = function() {
+    var len = waitTime.length;
+    var i = 0;
     var loop = function() {
         setTimeout(() => {
+            console.log('waiting time: ', waitTime[i])
             getReadyTask().then((task) => {
-                if(task === null) loop();
-                else execute(task).then(() => loop())
+                if(task === null) {
+                    i = (i === len - 1 ? i : i + 1);
+                    loop();
+                }
+                else execute(task).then(() => {
+                    i = 0;
+                    loop();
+                });
             });
-        }, 5000);
+        }, waitTime[i]);
     }
     return Promise.resolve().then(() => { return loop(); });
 }();
