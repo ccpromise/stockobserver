@@ -53,7 +53,27 @@ function readFile(path) {
     })
 }
 
+function readDirectory(dir) {
+    return new Promise((resolve, reject) => {
+        fs.readdir(dir, (err, r) => {
+            if(err) reject(err);
+            else resolve(r);
+        })
+    })
+}
+
+function stat(file) {
+    return new Promise((resolve, reject) =>{
+        fs.stat(file, (err, stats) => {
+            if(err) reject(err);
+            else resolve(stats);
+        })
+    })
+}
+
 exports.writeToCSV = writeToCSV;
 exports.writeFile = writeFile;
 exports.readFile = readFile;
 exports.createTmpFile = createTmpFile;
+exports.readDirectory = readDirectory;
+exports.stat = stat;

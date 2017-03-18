@@ -23,6 +23,7 @@ blobService.listBlobsSegmented('stockdata', null, function(err, result, response
         else console.log(result);
     })
 })*/
-azure.getBlobList('stockdata').then((list) => {
-    return list.map((r) => { return r.name; });
-}).then((list) => console.log(list));
+
+azure.getBlobList('tmp').then((r) => {
+    console.log(r);
+})

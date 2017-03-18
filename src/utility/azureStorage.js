@@ -3,6 +3,17 @@ var config = require('../config');
 var azure = require('azure-storage');
 var blobService = azure.createBlobService(config.azureAccount, config.azurePwd, config.azureHost);
 
+exports.createContainerIfNotExists = function(container, opt) {
+    opt = opt || {};
+    opt.publicAccessLevel = opt.publicAccessLevel || 'blob';
+    return new Promise((resolve, reject) => {
+        blobService.createContainerIfNotExists(container, opt, (err, r) => {
+            if(err) reject(err);
+            else resolve(r);
+        })
+    })
+}
+
 exports.getBlobList = function(container) {
     return new Promise((resolve, reject) => {
         var blobs = [];
@@ -49,7 +60,7 @@ exports.createBlobFromText = function (container, blob, content) {
 
 exports.createBlobFromFile = function (container, blob, file) {
     return new Promise((resolve, reject) => {
-        blobService.createBlockBlobFromLocalFile(container, blob, content, (err, result) => { // do we need to set content-type?
+        blobService.createBlockBlobFromLocalFile(container, blob, file, (err, result) => { // do we need to set content-type?
             if(err) reject(err);
             else resolve(result);
         })
