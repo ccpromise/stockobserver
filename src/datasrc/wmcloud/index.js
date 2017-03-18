@@ -24,10 +24,10 @@ exports.getHistoryData = function(secID, beginDate, endDate) {
         query.endDate = endDate;
         return getMktEquad(query).then((obj) => {
             if(obj.retCode != 1) throw new Error(obj.retMsg);
-            var minDay = time.format(time.today(), 'YYYY-MM-DD');
-            var maxDay = '1990-01-01';
+            var minDay = time.format(time.today(), 'YYYYMMDD');
+            var maxDay = '19900101';
             var tradeData = obj.data.reduce((pre, cur) => {
-                var date = time.format(cur['tradeDate'], 'YYYY-MM-DD');
+                var date = time.format(cur['tradeDate'], 'YYYYMMDD');
                 minDay = time.isAfter(date, minDay) ? minDay : date;
                 maxDay = time.isAfter(maxDay, date) ? maxDay : date;
                 pre[date] = {};

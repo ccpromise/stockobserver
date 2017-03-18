@@ -1,7 +1,6 @@
 
 var config = require('../../config');
 var utility = require('../../utility');
-var file = utility.file;
 var validate = utility.validate;
 var time = utility.time;
 var http = utility.http;
@@ -14,16 +13,20 @@ var run = function() {
     var i = 0;
     var loop = function() {
         setTimeout(() => {
+            console.log('wating task...');
             getReadyTask().then((task) => {
                 if(task === null) i = (i === len - 1 ? i : i + 1);
                 else return execute(task).then(() => i = 0);
-            }).then(() => loop());
+            }).catch(err => {
+                console.log(err);
+            }).then(loop);
         }, waitTime[i]);
     }
-    return Promise.resolve().then(loop);
+    loop();
 };
 
 var execute = function(task) {
+    console.log('start to execute task..')
     var id = task.id;
     var lastProcessedTs = task.lastProcessedTs;
     return updateStockData(task.secID).then(() => {
@@ -49,16 +52,16 @@ var execute = function(task) {
             }
         }
     }).then((res) => {
-        console.log('task result: ', res);
+        console.log('task completed, status: ', res.status);
         return sendResult(res);
-    }).catch((err) => console.log(err));
+    });
 }
 
 // http
 var getReadyTask = function() {
     var opt = {
-        host: config.localHost,
-        port: config.localPort,
+        host: config.dispatcherHost,
+        port: config.dispatcherPort,
         path: '/dispatch'
     };
     return http.request(opt).then((data) => {
@@ -69,8 +72,8 @@ var getReadyTask = function() {
 var sendResult = function(data) {
     var postData = JSON.stringify(data);
     var opt = {
-        host: config.localHost,
-        port: config.localPort,
+        host: config.dispatcherHost,
+        port: config.dispatcherPort,
         path: '/upload',
         method: 'POST',
         data: postData,

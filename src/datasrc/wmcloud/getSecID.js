@@ -1,5 +1,5 @@
 
-var utility = require('../../utility');
+var http = require('../../utility').http;
 var access_token = require('../../config').access_token;
 
 var opt = {
@@ -12,9 +12,17 @@ var opt = {
     useHttps: true
 }
 
-module.exports = function() {
-    /*return utility.http.request(opt).then((data) => {
+/*module.exports = function() {
+    return http.request(opt).then((data) => {
         console.log(JSON.parse(data.toString()));
-    }).catch((err) => console.log(err));*/
-    return Promise.resolve(['000001.XSHE', '000002.XSHE', '000006.XSHE']);
+    }).catch((err) => console.log(err));
+}*/
+
+var azure = require('../../utility').azureStorage;
+var container = require('../../config').stockdataContainer;
+
+module.exports = function() {
+    return azure.getBlobToText(container, 'allstocks.txt').then((r) => {
+        return r.split(';');
+    });
 }

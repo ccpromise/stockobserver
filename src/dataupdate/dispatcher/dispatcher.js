@@ -7,11 +7,11 @@ var getSecID = require('../../datasrc/wmcloud/index').getSecID;
 
 var config = require('../../config');
 var syncTime = config.stockSyncTime;
-var localPort = config.localPort;
+var port = config.dispatcherPort;
+var host = config.dispatcherHost;
 
 var utility = require('../../utility');
 var time = utility.time;
-var file = utility.file;
 
 var taskdb = require('./db');
 var db = taskdb.database;
@@ -26,9 +26,9 @@ var setProducer = function() {
         setTimeout(() => {
             var today = time.today();
             var syncTimeToday = today;
-            time.setUTCHours(syncTimeToday, syncTime.hour);
-            time.setUTCMinutes(syncTimeToday, syncTime.minute || 0);
-            time.setUTCMilliseconds(syncTimeToday, syncTime.milliseconds || 0);
+            time.setUTCHour(syncTimeToday, syncTime.hour);
+            time.setUTCMinute(syncTimeToday, syncTime.minute || 0);
+            time.setUTCMillisecond(syncTimeToday, syncTime.milliseconds || 0);
             if(time.isAfter(today, lastSyncDay) && time.isAfter(time.now(), syncTimeToday)) {
                 console.log('start to produce task');
                 syncDateCol.find({}).then((list) => {
@@ -36,7 +36,7 @@ var setProducer = function() {
                     var curStock = {};
                     list.forEach((stock) => {
                         curStock[stock.secID] = true;
-                        if(time.isAfter(today, time.createDate(stock.syncDate)))
+                        if(time.isAfter(today, stock.syncDate))
                             idArr.push(stock.secID);
                     });
                     return getSecID().then((list) => {
@@ -59,25 +59,25 @@ var setProducer = function() {
                 }).then(() => {
                     console.log('update last sync date to today');
                     lastSyncDay = today;
-                    loop();
-                });
+                }).catch((err) => {
+                    console.log(err);
+                }).then(loop);
             }
             else loop();
         }, 5000);
     };
-    return Promise.resolve().then(loop);
+    loop();
 };
 
 var clearTimeout = function() {
     var loop = function() {
         setTimeout(() => {
-            taskCol.clearTimeout().then((r) => {
-                console.log('cleared task number: ', r.result.nModified);
-                loop();
-            });
+            taskCol.clearTimeout().catch((err) => {
+                console.log(err);
+            }).then(loop);
         }, 6000);
     }
-    return Promise.resolve().then(() => loop());
+    loop();
 };
 
 // http
@@ -108,8 +108,8 @@ var createServer = function() {
                         $set: { 'status': result.status },
                         $push: { 'log': result.log }
                     }).then(() => { return 200; });
-                }).then((respondCode) => {
-                    res.writeHead(respondCode);
+                }).then((responseCode) => {
+                    res.writeHead(responseCode);
                     res.end();
                 }, (err) => {
                     res.writeHead(500);
@@ -118,8 +118,8 @@ var createServer = function() {
             })
         }
     });
-    server.listen(localPort);
-    console.log('start to listen on port', localPort);
+    server.listen(port, host);
+    console.log('start to listen on port', port);
 };
 
 setProducer();

@@ -51,8 +51,8 @@ exports.isAfter = function(day1, day2) {
 
 
 exports.createDate = function(x) {
-    x = moment(x).format('YYYY-MM-DD');
-    return new Date(x);
+    var y = moment.utc(x);
+    return new Date(Date.UTC(y.year(), y.month(), y.date(), y.hour(), y.second(), y.millisecond()));
 }
 
 exports.now = function() {
@@ -65,32 +65,32 @@ exports.today = function() {
     return x
 }
 
-exports.getYear = function(x) {
-    var xDate = new Date(x);
-    return xDate.getYear() + 1990;
+exports.getUTCYear = function(x) {
+    var y = moment.utc(x);
+    return y.year();
 }
 
-exports.getMonth = function(x) {
-    var xDate = new Date(x);
-    return xDate.getMonth() + 1;
+exports.getUTCMonth = function(x) {
+    var y = moment.utc(x);
+    return y.month() + 1;
 }
 
-exports.getDate = function(x) {
-    var xDate = new Date(x);
-    return xDate.getDate() + 1;
+exports.getUTCDate = function(x) {
+    var y = moment.utc(x);
+    return y.date();
 }
 
-exports.setUTCHours = function(x, hour) {
+exports.setUTCHour = function(x, hour) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
     x.setUTCHours(hour);
 }
 
-exports.setUTCMinutes = function(x, minutes) {
+exports.setUTCMinute = function(x, minutes) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
     x.setUTCMinutes(minutes);
 }
 
-exports.setUTCMilliseconds = function(x, milliseconds) {
+exports.setUTCMillisecond = function(x, milliseconds) {
     if(!(x instanceof Date)) throw new Error('invalid time input');
     x.setUTCMilliseconds(milliseconds);
 }
@@ -98,39 +98,36 @@ exports.setUTCMilliseconds = function(x, milliseconds) {
 exports.tomorrow = function() {
     var x = new Date();
     x.setUTCHours(0, 0, 0, 0);
-    x.setDate(x.getDate() + 1);
+    x.setUTCDate(x.getUTCDate() + 1);
     return x;
 }
 
 exports.yesterday = function() {
     var x = new Date();
     x.setUTCHours(0, 0, 0, 0);
-    x.setDate(x.getDate() - 1);
+    x.setUTCDate(x.getUTCDate() - 1);
     return x;
 }
 
 exports.nextDay = function(x) {
-    var xDate = new Date(x);
-    xDate.setDate(xDate.getDate() + 1);
-    return xDate;
+    var y = exports.createDate(x);
+    y.setUTCDate(y.getUTCDate() + 1);
+    return y;
 }
 
 exports.isAfter = function(x, y) {
-    var xDate = new Date(x);
-    var yDate = new Date(y);
-    return xDate - yDate > 0;
+    var xts = moment.utc(x).valueOf();
+    var yts = moment.utc(y).valueOf();
+    return xts - yts > 0;
 }
 
 exports.getTs = function(x) {
-    var xDate = new Date(x);
-    return xDate.getTime();
+    var y = moment.utc(x);
+    return y.valueOf();
+    // return Date.UTC(y.year(), y.month(), y.date(), y.hour(), y.second(), y.millisecond())
 }
 
 exports.format = function(x, format) {
     format = format || 'YYYY-MM-DD hh:mm:sssZ'
-    return moment(x).format(format);
-}
-
-exports.getUTCTs = function(year, month, date, hour, minute, second) {
-    return Date.UTC(year, month-1, date, hour, minute, second);
+    return moment.utc(x).format(format);
 }

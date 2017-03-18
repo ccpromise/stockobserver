@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/ccpromise/stockobserver#readme",
   "dependencies": {
+    "azure-storage": "^2.1.0",
     "js-cache": "^1.0.2",
     "jshint": "^2.9.4",
     "later": "^1.2.0",

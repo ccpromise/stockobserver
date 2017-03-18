@@ -8,3 +8,4 @@ exports.file = require('./file');
 exports.cache = require('./cache');
 exports.async = require('./async');
 exports.database = require('./database');
+exports.azureStorage = require('./azureStorage');
