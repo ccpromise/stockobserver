@@ -5,8 +5,11 @@ var valueMap ={
     "key1": "value of key1",
     "key2": 123,
     "key3": {
-        m: "{{key1}}",
+        m: "{{key4}}",
     },
+    "key4": {
+        value: "{{key2}}"
+    }
 }
 
 var obj = {
@@ -17,7 +20,8 @@ var obj = {
        "{{key2}}"
    ],
    "c": {
-       "d": "{{key3}}"
+       "d": "{{key3}}",
+       "l": "{{key4}}"
    },
    "e": 123,
    "m": "normal string"
