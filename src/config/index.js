@@ -37,3 +37,4 @@ exports.azureAccount = 'liuccplay';
 exports.azurePwd = 'KAl0k8DrhZen3m+d+LDTY0s9DFqdDadI7sJgP2/brJ7vHHiyzgfJb7Qml3pyf3T1W9coq0bym2oZprEQYd4k5A==';
 exports.azureHost = 'liuccplay.blob.core.chinacloudapi.cn';
 exports.stockdataContainer = 'stockdata';
+exports.defaultContainer = 'stockdata';

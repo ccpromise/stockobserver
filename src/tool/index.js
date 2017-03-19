@@ -1,2 +1,0 @@
-
-exports.azureStorage = require('./azureStorage');
