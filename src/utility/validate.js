@@ -14,6 +14,10 @@ exports.isNum = function (val) {
     return typeof val === 'number';
 }
 
+exports.isBoolean = function (val) {
+    return typeof val === 'boolean';
+}
+
 exports.isInt = function(val) {
     return typeof val === 'number' && val === Math.floor(val);
 }
