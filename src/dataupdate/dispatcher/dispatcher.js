@@ -63,7 +63,10 @@ var setProducer = function() {
                     console.log(err);
                 }).then(loop);
             }
-            else loop();
+            else {
+                console.log('no task produced now');
+                loop();
+            }
         }, 5000);
     };
     loop();
@@ -72,10 +75,13 @@ var setProducer = function() {
 var clearTimeout = function() {
     var loop = function() {
         setTimeout(() => {
-            taskCol.clearTimeout().catch((err) => {
+            console.log('start to clear timeout tasks...')
+            taskCol.clearTimeout().then((r) => {
+                console.log('cleared timeout tasks: ', r.result.nModified);
+            }).catch((err) => {
                 console.log(err);
             }).then(loop);
-        }, 6000);
+        }, 10000);
     }
     loop();
 };
