@@ -103,7 +103,7 @@ Collection.prototype.insert = function(doc, opt) {
 // }
 Collection.prototype.update = function(filter, doc, opt) {
     opt = opt || {};
-    if(opt.multi !== false) opt.multi = true;
+    opt.multi = opt.multi || true;
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.update(filter, doc, opt, (err, r) => {

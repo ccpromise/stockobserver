@@ -1,4 +1,5 @@
 
+var ObjectId = require('mongodb').ObjectId;
 var utility = require('../../utility');
 var config = require('../../config');
 var taskStatus = require('../../constants').taskStatus;
@@ -8,13 +9,8 @@ var mongoUrl = config.mongoUrl;
 var maxTaskDuration = config.maxTaskDuration;
 
 var db = new Database(mongoUrl);
-var syncDateCol = db.getCollection('syncDateCol', { 'secID': true, 'syncDate': true });
+var syncdateCol = db.getCollection('syncdateCol', { 'secID': true, 'syncdate': true });
 var taskCol = db.getCollection('taskCol', { 'secID': true, 'status': true, 'lastProcessingTime': true, 'log': true });
-
-// for test
-syncDateCol.remove({});
-taskCol.remove({});
-//taskCol.find({}).then((r) => console.log(JSON.stringify(r)));
 
 taskCol.clearTimeout = function() {
     return taskCol.update({
@@ -24,7 +20,7 @@ taskCol.clearTimeout = function() {
         $push: { 'log': {
             'desc': 'task time out',
             'time': time.format(time.now()),
-            'err': 'task time out'
+            'err': new Error('task time out')
         }}
     });
 }
@@ -57,12 +53,27 @@ taskCol.findReadyTask = function() {
     }).then((r) => {
         return r.value === null ? null : {
             'id': r.value._id,
-            'secID': r.value.secID,
+            'task': {
+                'type': 'updateStockData',
+                'pack': r.value.secID
+            },
             'lastProcessedTs': r.value.lastProcessedTs
         }
     });
 }
 
-exports.syncDateCol = syncDateCol;
+// result: {
+// id:
+// status:
+// lastProcessdTs:
+// log:
+// }
+taskCol.checkResultValidity = function(result) {
+    var id = new ObjectId(result.id);
+    return taskCol.findOne({ '_id': id }, { 'lastProcessedTs': true, 'status': true }).then((r) => {
+        return r !== null && r.lastProcessedTs === result.lastProcessedTs && r.status === taskStatus.processing;
+    });
+}
+
+exports.syncdateCol = syncdateCol;
 exports.taskCol= taskCol;
-exports.database = db;

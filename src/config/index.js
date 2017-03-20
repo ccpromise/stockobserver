@@ -31,6 +31,9 @@ exports.waitTime = [0, 5000, 10000, 15000, 20000];
 // dispatcher
 exports.dispatcherHost = '127.0.0.1';
 exports.dispatcherPort = 8000;
+exports.produceInterval = 5000;
+exports.timeoutInterval = 5000;
+exports.maxProcessTs = 30000;
 
 // azure-storage
 exports.azureAccount = 'liuccplay';

@@ -1,14 +1,12 @@
 
-var stockDir = require('../../config').stockDataDir;
-var utility = require('../../utility');
-var file = utility.file;
+var utility = require('../../../utility');
 var time = utility.time;
-var path = require('path');
-var getHistoryData = require('../../datasrc/wmcloud').getHistoryData;
-var azure = require('../../utility').azureStorage;
-var container = require('../../config').stockdataContainer;
+var azure = utility.azureStorage;
+var validate = utility.validate;
+var getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
+var container = require('../../../config').stockdataContainer;
 
-module.exports = function(secID) {
+exports.run = function(secID) {
     secID = secID.toLowerCase();
     return azure.getBlobToText(container, secID + '.json').then((stockData) => {
         stockData = JSON.parse(stockData);
@@ -31,4 +29,8 @@ module.exports = function(secID) {
             console.log('write to blob done.');
         });
     });
+}
+
+exports.checkArgs = function(arg) {
+    return validate.isStr(arg);
 }

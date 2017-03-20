@@ -59,10 +59,11 @@ exports.now = function() {
     return new Date();
 }
 
-exports.today = function() {
+exports.today = function(time) {
     var x = new Date();
-    x.setUTCHours(0, 0, 0, 0);
-    return x
+    time = time || {};
+    x.setUTCHours(time.hour || 0, time.minute || 0, time.second || 0, time.millisecond || 0);
+    return x;
 }
 
 exports.getUTCYear = function(x) {
@@ -95,16 +96,14 @@ exports.setUTCMillisecond = function(x, milliseconds) {
     x.setUTCMilliseconds(milliseconds);
 }
 
-exports.tomorrow = function() {
-    var x = new Date();
-    x.setUTCHours(0, 0, 0, 0);
+exports.tomorrow = function(time) {
+    var x = exports.today(time);
     x.setUTCDate(x.getUTCDate() + 1);
     return x;
 }
 
-exports.yesterday = function() {
-    var x = new Date();
-    x.setUTCHours(0, 0, 0, 0);
+exports.yesterday = function(time) {
+    var x = exports.today(time);
     x.setUTCDate(x.getUTCDate() - 1);
     return x;
 }
