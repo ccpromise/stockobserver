@@ -4,7 +4,7 @@ var config = require('../config');
 
 // refTemplate: {
 // regex: new RegExp(/{{\w+}}/);
-// getKey : function(reference). {{key1}} => key1
+// getRef : function(reference). {{key1}} => key1
 //}
 module.exports = function(objTemplate, valueMap, refTemplate) {
     refTemplate = refTemplate || config.defaultRefenceTemplate;
@@ -42,19 +42,19 @@ var findRefValue = function(value, objTemplate, valueMap, stack, refTemplate, va
     }
     if(validate.isStr(value)) {
         if(refTemplate.regex.test(value)) {// full match or part?
-            var key = refTemplate.getKey(value);
-            if(!(key in valueMap)) {
-                if(!(key in validRef)) throw new Error(' invalid reference');
-                // if we don't find a valid key in parameter 'valueMap', it means we are removing templates in the original valueMap.
+            var ref = refTemplate.getRef(value);
+            if(!(ref in valueMap)) {
+                if(!(ref in validRef)) throw new Error('invalid reference');
+                // if we don't find a valid ref in parameter 'valueMap', it means we are removing templates in the original valueMap.
                 // so the following part will only be executed when removing the reference in the original valueMap
-                if(key in stack) throw new Error('circular reference');
-                stack[key] = true;
-                var refValue = findRefValue(objTemplate[key], objTemplate, valueMap, stack, refTemplate, validRef);
-                valueMap[key] = refValue;
-                delete stack[key];
+                if(ref in stack) throw new Error('circular reference');
+                stack[ref] = true;
+                var refValue = findRefValue(objTemplate[ref], objTemplate, valueMap, stack, refTemplate, validRef);
+                valueMap[ref] = refValue;
+                delete stack[ref];
                 return refValue;
             }
-            return valueMap[key];
+            return valueMap[ref];
         }
         return value;
     }
@@ -88,7 +88,7 @@ var findReference = function(value, valuMap, refTemplate) {
         return value;
     if(validate.isStr(value)) {
         if(refTemplate.regex.test(value)) {
-            var key = refTemplate.getKey(value);
+            var key = refTemplate.getRef(value);
             if(!(key in valueMap)) throw new Error('invalid reference');
             return valueMap[value];
         }
@@ -141,7 +141,7 @@ var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
     }
     if(validate.isStr(value)) {
         if(refTemplate.regex.test(value)) {// full match or part?
-            var key = refTemplate.getKey(value);
+            var key = refTemplate.getRef(value);
             if(!(key in refValueMap)) {
                 if(!(key in valueMap)) throw new Error('invalid reference');
                 if(key in stack) throw new Error('circular reference');

@@ -42,7 +42,7 @@ exports.defaultContainer = 'stockdata';
 // utility-refReplace
 exports.defaultRefenceTemplate = {
     'regex': new RegExp(/{{\w+}}/),
-    'getKey': function(s) {
+    'getRef': function(s) {
         return s.substring(2, s.length-2);
     }
 }
