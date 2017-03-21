@@ -4,25 +4,18 @@ var access_token = require('../../config').access_token;
 
 var opt = {
     host: 'api.wmcloud.com',
-    path: '/api/master/getSecID.json',
-    query: 'assetClass=E&field=secID,listStatusCD',
+    path: '/data/v1/api/master/getSecID.json',
+    query: 'assetClass=E&field=secID,listStatusCD,exchangeCD',
     headers: {
         'Authorization': 'Bearer ' + access_token,
     },
     useHttps: true
 }
 
-/*module.exports = function() {
-    return http.request(opt).then((data) => {
-        console.log(JSON.parse(data.toString()));
-    }).catch((err) => console.log(err));
-}*/
-
-var azure = require('../../utility').azureStorage;
-var container = require('../../config').stockdataContainer;
-
 module.exports = function() {
-    return azure.getBlobToText(container, 'allstocks.txt').then((r) => {
-        return r.split(';');
+    return http.request(opt).then((content) => {
+        var data = JSON.parse(content.toString());
+        if(data.retCode !== 1) throw new Error(data.retMsg);
+        return data.data.filter((stock) => stock.listStatusCD === 'L' && stock.exchangeCD === 'XSHE').map((stock) => stock.secID);
     });
 }

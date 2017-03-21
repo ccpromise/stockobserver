@@ -41,6 +41,7 @@ exports.azurePwd = 'KAl0k8DrhZen3m+d+LDTY0s9DFqdDadI7sJgP2/brJ7vHHiyzgfJb7Qml3py
 exports.azureHost = 'liuccplay.blob.core.chinacloudapi.cn';
 exports.stockdataContainer = 'stockdata';
 exports.defaultContainer = 'stockdata';
+exports.stockmetaContainer = 'stockmeta';
 
 // utility-refReplace
 exports.defaultRefenceTemplate = {

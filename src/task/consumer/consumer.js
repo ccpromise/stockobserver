@@ -28,6 +28,15 @@ var execute = function(task) {
     console.log('start to execute task..')
     var taskType = task.task.type;
     var args = task.task.pack;
+    var invalidArg = {
+        id: task.id,
+        status: taskStatus.success,
+        lastProcessedTs: task.lastProcessedTs,
+        log: {
+            'desc': 'task fail',
+            'time': time.format(time.now()),
+        }
+    };
     if(taskType in taskLib) {
         var handler = taskLib[taskType];
         if(handler.checkArgs(args)) {
@@ -54,12 +63,14 @@ var execute = function(task) {
                     }
                 }
             }).then((r) => {
-                return sendResult(r, '/upload');
+                return sendResult(r);
             });
         }
-        return sendResult('invalid task pack: ' + args, '/fail');
+        invalidArg.log.err = 'invalid arguments: ' + args;
+        return sendResult(invalidArg);
     }
-    return sendResult('invalid task type: ' + taskType, '/fail');
+    invalidArg.log.err = 'invalid task type: ' + taskType;
+    return sendResult(invalidArg);
 }
 
 // http
@@ -74,13 +85,13 @@ var getReadyTask = function() {
     });
 }
 
-var sendResult = function(data, path) {
+var sendResult = function(data) {
     console.log('send back result: ', data);
     var postData = JSON.stringify(data);
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: path,
+        path: '/report',
         method: 'POST',
         data: postData,
         headers: {

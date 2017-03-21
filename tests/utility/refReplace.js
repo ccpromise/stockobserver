@@ -28,7 +28,7 @@ var obj = {
 }
 
 try {
-    refReplace(obj, valueMap);
+    console.log(refReplace(obj, valueMap));
 }
 catch (err) {
     console.log(err);

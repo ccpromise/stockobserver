@@ -32,9 +32,6 @@ var run = function() {
     createServer();
 }
 
-// setProducer should be called here, not in individual task. so that the individual task do not need to handle error.
-// how to ensure one task will only be called once at a time? otherwise, two process visit the same database?
-// so there should be a manager process, managing all the processing dispatcher. if you try to produce two dispatcher for the same task, it will be forbidden?
 var setProducer = function(task) {
     var loop = function() {
         setTimeout(() => {
@@ -109,51 +106,44 @@ var createServer = function() {
                 console.log('err when calling task.getReadyTask, err: ', err);
             });
         }
-        else if(pathname === '/upload') {
+        else if(pathname === '/report') {
             var data = [];
             req.on('data', (chunk) => {
                 data.push(chunk);
             });
             req.on('end', () => {
-                Promise.resolve().then(() => {
-                    var result = JSON.parse(Buffer.concat(data).toString());
-                    console.log('receive result from consumer: ', JSON.stringify(result));
-                    taskCol.checkResultValidity(result).then((r) => {
-                        if(r) {
-                            var id = new ObjectId(result.id);
-                            taskCol.update({
-                                _id: id
-                            }, {
-                                $set: { status: result.status },
-                                $push: { log: result.log }
-                            }).then(() => {
-                                console.log('receive result and update collection.');
-                                res.writeHead(200);
-                                res.end();
-                            });
-                        }
-                        else {
-                            res.writeHead(400);
-                            res.end('result is invalid for the task.');
-                        }
-                    }).catch((err) => {
-                        res.writeHead(500); // error when server check result validity or update task
-                        res.end('server error');
-                    });
-                }).catch((err) => { // error when parse data.
+                var result = null;
+                try {
+                    result = JSON.parse(Buffer.concat(data).toString());
+                }
+                catch (err) {
                     res.writeHead(400);
-                    res.end('invalid data');
+                    res.end();
+                    return;
+                }
+                console.log('receive result from consumer: ', JSON.stringify(result));
+                taskCol.checkResultValidity(result).then((r) => {
+                    if(r) {
+                        var id = new ObjectId(result.id);
+                        return taskCol.update({
+                            _id: id
+                        }, {
+                            $set: { status: result.status },
+                            $push: { log: result.log }
+                        }).then(() => {
+                            console.log('receive result and update collection.');
+                            res.writeHead(200);
+                            res.end();
+                        });
+                    }
+                    else {
+                        res.writeHead(400);
+                        res.end('result is invalid for the task.');
+                    }
+                }).catch((err) => {
+                    res.writeHead(500); // error when server check result validity or update task
+                    res.end('server error');
                 });
-            });
-        }
-        else if(pathname === '/fail'){
-            var data = [];
-            req.on('data', (chunk) => data.push(chunk));
-            req.on('end', () => {
-                var message = data.toString();
-                console.log('task fail, err: ', message);
-                res.writeHead(200);
-                res.end();
             });
         }
         else {
