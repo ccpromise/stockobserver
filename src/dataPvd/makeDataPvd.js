@@ -16,7 +16,9 @@ var pvdList = {
     'sub': DataPvd.SubDataPvd,
     'const': DataPvd.ConstDataPvd,
     'offset': DataPvd.OffsetDataPvd,
-    'end': DataPvd.EndDataPvd
+    'end': DataPvd.EndDataPvd,
+    'and': DataPvd.AndDataPvd,
+    'gt': DataPvd.GtDataPvd
 }
 
 // ldp: {'type': , 'pack': {}}

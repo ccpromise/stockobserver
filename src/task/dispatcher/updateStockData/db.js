@@ -1,8 +1,8 @@
 
 var ObjectId = require('mongodb').ObjectId;
-var utility = require('../../utility');
-var config = require('../../config');
-var taskStatus = require('../../constants').taskStatus;
+var utility = require('../../../utility');
+var config = require('../../../config');
+var taskStatus = require('../../../constants').taskStatus;
 var Database = utility.database;
 var time = utility.time;
 var mongoUrl = config.mongoUrl;
@@ -11,6 +11,10 @@ var maxTaskDuration = config.maxTaskDuration;
 var db = new Database(mongoUrl);
 var syncdateCol = db.getCollection('syncdateCol', { 'secID': true, 'syncdate': true });
 var taskCol = db.getCollection('taskCol', { 'secID': true, 'status': true, 'lastProcessingTime': true, 'log': true });
+
+// test
+//taskCol.remove({});
+//syncdateCol.remove({});
 
 taskCol.clearTimeout = function() {
     return taskCol.update({
@@ -52,7 +56,7 @@ taskCol.findReadyTask = function() {
         }}
     }).then((r) => {
         return r.value === null ? null : {
-            'id': r.value._id,
+            'id': r.value._id.toString(),
             'task': {
                 'type': 'updateStockData',
                 'pack': r.value.secID
@@ -70,7 +74,7 @@ taskCol.findReadyTask = function() {
 // }
 taskCol.checkResultValidity = function(result) {
     var id = new ObjectId(result.id);
-    return taskCol.findOne({ '_id': id }, { 'lastProcessedTs': true, 'status': true }).then((r) => {
+    return taskCol.findOne({ 'id': id }, { 'lastProcessedTs': true, 'status': true }).then((r) => {
         return r !== null && r.lastProcessedTs === result.lastProcessedTs && r.status === taskStatus.processing;
     });
 }

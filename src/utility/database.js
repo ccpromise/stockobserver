@@ -152,7 +152,7 @@ Collection.prototype.upsertMany = function(ops) {
                 if(err) reject(err);
                 else resolve(r);
             });
-        })
+        });
     })
 }
 
@@ -264,8 +264,8 @@ Collection.prototype.insertMany = function(docArr, opt) {
             col.insertMany(docArr, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
-            })
-        })
+            });
+        });
     })
 }
 

@@ -4,6 +4,7 @@ var validate = utility.validate;
 var object = utility.object;
 var pvdGenerator = require('../../../dataPvd/makeDataPvd');
 
+// {pvds: idx: }
 function checkParams(paramObj) {
     if(!(validate.isObj(paramObj) && object.numOfKeys(paramObj) === 2 &&
     validate.isArr(paramObj.pvds) && validate.isNonNegInt(paramObj.idx) && paramObj.idx < paramObj.pvds.length))

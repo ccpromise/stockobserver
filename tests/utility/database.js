@@ -4,14 +4,10 @@ var Database = require('../../src/utility/database');
 var db = new Database('mongodb://127.0.0.1:27017');
 var col1 = db.getCollection('test_new', {'name': true});
 
-col1.remove({}).then(() => { return col1.insertMany([{'name': 'cc'}, {'name':'cy'}])}).then((r) => {
-    col1.update({'name': { $in: ['cx', 'cc']}}, { $set: {'age': 29}}, {'multi': true, 'upsert':true}).then((r) => {
-        console.log(r);
-        col1.find({}, {'name': true, 'age': true}).then((r) => {
-            console.log(r);
-        })
-    })
-});
+col1.find({}).then( (r) => {
+    console.log(r);
+    col1.insert({'_id':1}).then((r) => col1.find({}).then(console.log))
+})
 /*
 col1.insert({'name': 'cc', 'age': 25}).then((r) => {
     console.log(r);

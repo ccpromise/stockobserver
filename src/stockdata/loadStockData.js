@@ -1,16 +1,14 @@
 
-var dir = require('../config').stockDataDir;
-var file = require('../utility').file;
-var path = require('path');
+var azure = require('../utility').azureStorage;
+var container = require('../config').stockdataContainer;
 var cleanData = require('./cleanData');
 
 function loadStockData(secID) {
-    var fileName = secID + '.json';
-    return file.readFile(path.join(dir, fileName)).then((data) => {
-        data = JSON.parse(data.toString());
+    return azure.getBlobToText(container, secID + '.json').then((r) => {
+        var data = JSON.parse(r);
         cleanData(data);
         return data;
-    })
+    });
 }
 
 module.exports = loadStockData;

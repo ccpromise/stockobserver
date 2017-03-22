@@ -78,7 +78,7 @@ var getReadyTask = function() {
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: '/dispatch'
+        path: 'updateStockData/dispatch'
     };
     return http.request(opt).then((data) => {
         return JSON.parse(data.toString());
@@ -91,7 +91,7 @@ var sendResult = function(data) {
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: '/report',
+        path: 'updateStockData/report',
         method: 'POST',
         data: postData,
         headers: {

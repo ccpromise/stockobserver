@@ -122,7 +122,7 @@ exports.isAfter = function(x, y) {
 
 exports.getTs = function(x) {
     var y = moment.utc(x);
-    return y.valueOf();
+    return y.valueOf() / (60*60*24*1000);
     // return Date.UTC(y.year(), y.month(), y.date(), y.hour(), y.second(), y.millisecond())
 }
 
