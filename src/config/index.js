@@ -17,7 +17,7 @@ exports.stockListUrl = {
 };
 exports.updateTime = 'at 10:00am every weekday';
 exports.stockSyncTime = {
-    hour: 8,
+    hour: 0,
     minute: 0
 };
 

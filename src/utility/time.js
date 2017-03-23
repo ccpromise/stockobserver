@@ -120,10 +120,14 @@ exports.isAfter = function(x, y) {
     return xts - yts > 0;
 }
 
+exports.getDateTs = function(x) {
+    return exports.getTs(x) / (24*60*60*1000);
+    // return Date.UTC(y.year(), y.month(), y.date(), y.hour(), y.second(), y.millisecond())
+}
+
 exports.getTs = function(x) {
     var y = moment.utc(x);
-    return y.valueOf() / (60*60*24*1000);
-    // return Date.UTC(y.year(), y.month(), y.date(), y.hour(), y.second(), y.millisecond())
+    return y.valueOf();
 }
 
 exports.format = function(x, format) {

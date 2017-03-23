@@ -1,4 +1,6 @@
-var MongoClient = require('mongodb').MongoClient;
+var mongodb = require('mongodb');
+var MongoClient = mongodb.MongoClient;
+var ObjectId = mongodb.ObjectId;
 var validate = require('./validate');
 
 function Database (url) {

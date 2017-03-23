@@ -19,27 +19,26 @@ exports.run = function(args) {
     var secID = args.secID;
     var valueMap = { secID: secID };
 
-    return getTradeplan(tradeplanId).then((r) => {
+    return postToTradeplan([{ tradeplanId: tradeplanId }], 'findOne').then((r) => {
         // plan: {_id: , desc, dpInTmpl, dpOutTmpl}
         var plan = JSON.parse(r.toString());
-        if(plan === null) return Promise.reject('invalid tradeplanId');
+        if(plan === null) return Promise.reject(new Error('invalid tradeplanId'));
         var dpInLiteral = refReplace(plan.dpInTmpl, valueMap);
         var dpOutLiteral = refReplace(plan.dpOutTmpl, valueMap);
         var dpIn = makePvd(dpInLiteral);
         var dpOut = makePvd(dpOutLiteral);
         var endData = makePvd({ 'type': 'end', 'pack': secID });
-        var todayTs = time.getTs(time.today());
+        var todayTs = time.getDateTs(time.today());
         return Promise.all([dpIn, dpOut, endData]).then((arr) => {
             var dpIn = arr[0];
             var dpOut = arr[1];
             var endData = arr[2];
 
-            if(!endData.hasDef(todayTs)) return Promise.reject('stock data is not updated to today.');
+            if(!endData.hasDef(todayTs)) return Promise.reject(new Error('stock data is not updated to today.'));
             if(dpIn.get(todayTs)) {
                 console.log(secID, ' should buy at ', time.format(time.today(), 'YYYYMMDD'));
                 var todayPrice = endData.get(todayTs);
                 var post = postToSimulate([{
-                    _id: tradeplanId + secID + todayTs,
                     tradeplanId: tradeplanId,
                     secID: secID,
                     sdts: todayTs,
@@ -51,36 +50,55 @@ exports.run = function(args) {
                     hp: todayPrice,
                     lp: todayPrice,
                     closed: false
-                }]);
+                }], 'insert');
             }
-            var get = getOpenTrade({ 'tradeplanId': tradeplanId, 'secID': secID }).then((docs) => {
+            var get = postToSimulate([{ 'tradeplanId': tradeplanId, 'secID': secID, 'closed': false }], 'find').then((docs) => {
                 // doc: {_id, tradeplanId, secID, sdts, edts, hdts, ldts, sp, ep, hp, lp, closed}
                 docs = JSON.parse(docs.toString());
-                var sell = dpOut.get(todayTs);
-                var ep = endData.get(todayTs);
-                if(docs.length === 0) return;
+                if(docs === null || docs.length === 0) {
+                    console.log('no open trade of ', secID, ' in ', tradeplanId);
+                    return;
+                }
+                console.log('found old open trade: ', docs);
+                var updates = [];
                 docs.forEach((doc) => {
                     var ts = endData.forwardDateTs(doc.edts, 1);
-                    while(ts <= todayTs) {
+                    var hp = doc.hp;
+                    var hdts = doc.hdts;
+                    var lp = doc.lp;
+                    var ldts = doc.ldts;
+                    var ep = doc.ep;
+                    var edts = doc.edts;
+                    var closed = false;
+                    while(ts <= todayTs && ts !== -1) {
                         var endPrice = endData.get(ts);
-                        if(endPrice > doc.hp) {
-                            doc.hp = endPrice;
-                            doc.hdts = ts;
+                        if(endPrice > hp) {
+                            hp = endPrice;
+                            hdts = ts;
                         }
-                        if(endPrice < doc.lp) {
-                            doc.lp = endPrice;
-                            doc.ldts = ts;
+                        if(endPrice < lp) {
+                            lp = endPrice;
+                            ldts = ts;
+                        }
+                        if(dpOut.get(ts)) {
+                            edts = ts;
+                            ep = endPrice;
+                            closed = true;
+                            break;
                         }
                         ts = endData.forwardDateTs(ts, 1);
                     }
-                    doc.edts = todayTs;
-                    doc.ep = ep
-                    if(sell) {
-                        doc.closed = true;
+                    if(closed === false) {
+                        edts = todayTs;
+                        ep = endData.get(todayTs);
                     }
+                    console.log('trade updated: ', '\nedts: ', edts, '\nhdts: ', hdts, '\nldts: ', ldts, '\nep: ', ep, '\nhp: ', hp, '\nlp: ', lp, '\nclosed: ', closed)
+                    updates.push({
+                        'filter': { _id: doc._id },
+                        'update': { $set: { edts: edts, hdts: hdts, ldts: ldts, ep: ep, hp: hp, lp: hp, closed: closed } }
+                    })
                 });
-                console.log(secID, ' should sell at ', time.format(time.today(), 'YYYYMMDD'));
-                return postToSimulate(docs);
+                return postToSimulate([updates], 'updateMany'); // to change
             });
             return Promise.all([post, get]);
         });
@@ -89,36 +107,32 @@ exports.run = function(args) {
     ).catch(console.log);
 }
 
-var getTradeplan = function(tradeplanId) {
+var postToTradeplan = function(args, verb) {
     var opt = {
         host: host,
         port: port,
-        path: 'simulateTrade/tradeplan',
-        query: '_id=' + tradeplanId,
+        path: 'simulateTrade/trade',
+        method: 'POST',
+        data: JSON.stringify(args),
+        headers: {
+            'content-type': 'application/json',
+            verb: verb
+        }
     };
     return http.request(opt);
 }
 
-var postToSimulate = function(trades) {
+var postToSimulate = function(args, verb) {
     var opt = {
         host: host,
         port: port,
-        path: 'simulateTrade/updateTrade',
+        path: 'simulateTrade/simulate',
         method: 'POST',
-        data: JSON.stringify(trades),
+        data: JSON.stringify(args),
         headers: {
-            'content-type': 'application/json'
+            'content-type': 'application/json',
+            verb: verb
         }
-    }
-    return http.request(opt);
-}
-
-var getOpenTrade = function(filter) {
-    var opt = {
-        host: host,
-        port: port,
-        path: 'simulateTrade/getOpenTrade',
-        query: 'tradeplanId=' + filter.tradeplanId + '&secID=' + filter.secID + '&closed=false',
     }
     return http.request(opt);
 }

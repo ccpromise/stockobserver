@@ -15,7 +15,8 @@ var run = function() {
     var loop = function() {
         setTimeout(() => {
             console.log('wating task...');
-            getReadyTask().then((task) => {
+            postToTaskManager(null, 'get').then((task) => {
+                task = JSON.parse(task.toString());
                 if(task === null) i = (i === len - 1 ? i : i + 1);
                 else return execute(task).then(() => i = 0);
             }).catch(err => console.log(err)).then(loop);
@@ -63,35 +64,57 @@ var execute = function(task) {
                     }
                 }
             }).then((r) => {
-                return sendResult(r);
+                return postToTaskManager(r, 'report');
             });
         }
         invalidArg.log.err = 'invalid arguments: ' + args;
-        return sendResult(invalidArg);
+        return postToTaskManager(invalidArg, 'report');
     }
     invalidArg.log.err = 'invalid task type: ' + taskType;
-    return sendResult(invalidArg);
+    return postToTaskManager(invalidArg, 'report');
+}
+
+var postToTaskManager = function(args, verb) {
+    var opt = {
+        host: config.dispatcherHost,
+        port: config.dispatcherPort,
+        path: 'taskManager',
+        method: 'POST',
+        data: JSON.stringify(args),
+        headers: {
+            'content-type': 'application/json',
+            verb: verb
+        }
+    }
+    return http.request(opt);
 }
 
 // http
+/*
 var getReadyTask = function() {
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: 'updateStockData/dispatch'
+        path: 'taskManger',
+        method: 'POST',
+        data: JSON.stringify(null),
+        headers: {
+            'content-type': 'application/json',
+            'verb': 'getReadyTask'
+        }
     };
     return http.request(opt).then((data) => {
         return JSON.parse(data.toString());
     });
 }
 
-var sendResult = function(data) {
+var postToTaskManger = function(data) {
     console.log('send back result: ', data);
     var postData = JSON.stringify(data);
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: 'updateStockData/report',
+        path: 'taskManager/report',
         method: 'POST',
         data: postData,
         headers: {
@@ -100,5 +123,5 @@ var sendResult = function(data) {
     }
     return http.request(opt);
 }
-
+*/
 run();

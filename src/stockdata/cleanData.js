@@ -6,11 +6,11 @@ var object = utility.object;
 function cleanData(stockData) {
     var data = {};
     Object.keys(stockData.data).forEach((day) => {
-        data[time.getTs(day)] = stockData.data[day];
+        data[time.getDateTs(day)] = stockData.data[day];
     });
 
-    var minTs = time.getTs(stockData.minDay);
-    var maxTs = time.getTs(stockData.maxDay);
+    var minTs = time.getDateTs(stockData.minDay);
+    var maxTs = time.getDateTs(stockData.maxDay);
     var sortedTs = [];
     for(var ts = minTs; ts <= maxTs; ts ++) {
         if(ts in data) {

@@ -4,17 +4,16 @@ var url = require('url');
 var config = require('../../config');
 var produceInterval = config.produceInterval;
 var timeoutInterval = config.timeoutInterval;
-var maxProcessTs = config.maxProcessTs;
 var syncTime = config.stockSyncTime;
 var port = config.dispatcherPort;
 var host = config.dispatcherHost;
 var time = require('../../utility').time;
 var lastSyncDate = time.yesterday();
+var taskStatus = require('../../constants').taskStatus;
 var getSecID = require('../../datasrc/wmcloud').getSecID;
 
-var db = require('./updateStockData').db;
-var syncdateCol = db.syncdateCol;
-var taskCol = db.taskCol;
+var syncdateCol = require('./updateStockData/db').syncdateCol;
+var taskCol = require('./taskManager/db').taskCol;
 
 var run = function() {
     setProducer();
@@ -50,7 +49,20 @@ var setProducer = function(task) {
                                     'update': { $set: { syncdate: time.format(today, 'YYYYMMDD') } }
                                 }
                             })), //TODO question: updateMany vs update loop
-                            taskCol.insertTask(idArr)
+                            taskCol.insertMany(idArr.map((id) => {
+                                return {
+                                    'task': {
+                                        'type': 'updateStockData',
+                                        'pack': id
+                                    },
+                                    'status': taskStatus.ready,
+                                    'log': [{
+                                        'desc': 'build new',
+                                        'time': time.format(time.now()),
+                                        'err': null
+                                    }]
+                                }
+                            }))
                         ]);
                     }
                 }).then(() => {
@@ -84,16 +96,23 @@ var clearTimeout = function() {
 
 var createServer = function() {
     var server = http.createServer((req, res) => {
+        var body = [];
         var pathname = '.' + url.parse(req.url).pathname;
-        try {
-            var handler = require(pathname);
-            handler({ req: req, res: res });
-        }
-        catch(err) {
-            console.log(err);
-            res.writeHead(400);
-            res.end();
-        }
+        var verb = req.headers.verb;
+        req.on('data', (chunk) => body.push(chunk));
+        req.on('end', () => {
+            try {
+                var args = JSON.parse(Buffer.concat(body).toString());
+                var handler = require(pathname + '/http');
+            }
+            catch (err){
+                console.log(err);
+                res.writeHead(400);
+                res.end();
+                return;
+            }
+            handler(args, verb, res);
+        })
     });
     server.listen(port, host);
     console.log('start to listen on port: ', port);

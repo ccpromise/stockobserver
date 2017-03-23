@@ -9,7 +9,7 @@ function AddDataPvd(pvds, domainIdx, id) {
 AddDataPvd.prototype = Object.create(CombinedDataPvd.prototype);
 
 AddDataPvd.prototype.get = function(ts) {
-    if(!this.hasDef(ts)) throw new Error('invalid ts');
+    if(!this.hasDef(ts)) throw new Error('invalid ts' + ts);
     return this.pvds.reduce((pre, cur) => { return pre + cur.get(ts); }, 0);
 }
 
