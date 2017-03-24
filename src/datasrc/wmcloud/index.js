@@ -17,7 +17,7 @@ exports.getHistoryData = function(secID, beginDate, endDate) {
         beginDate = beginDate || '19900101';
         endDate = endDate || time.format(time.today(), 'YYYYMMDD');
         var query = clone(queryPattern);
-        var fields = ['tradeDate', 'openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol'];
+        var fields = ['tradeDate', 'openPrice', 'closePrice', 'highestPrice', 'lowestPrice', 'turnoverRate', 'turnoverVol', 'preClosePrice', 'accumAdjFactor'];
         query.secID = secID;
         query.field = fields.join(',');
         query.beginDate = beginDate;
@@ -31,14 +31,19 @@ exports.getHistoryData = function(secID, beginDate, endDate) {
                 minDay = time.isAfter(date, minDay) ? minDay : date;
                 maxDay = time.isAfter(maxDay, date) ? maxDay : date;
                 pre[date] = {};
-                for(var i = 0; i < 6; i++)
+                var adjFactor = cur.accumAdjFactor / obj.data[0].accumAdjFactor;
+                if(adjFactor !== 1) console.log('price should be adjusted on day: ', date);
+                for(var i = 0; i < 4; i++)
+                    pre[date][property[i]] = cur[fields[i+1]] * adjFactor;
+                for(i = 4; i < 6; i++)
                     pre[date][property[i]] = cur[fields[i+1]];
                 return pre;
             }, {});
             return {
                 data: tradeData,
                 minDay: minDay,
-                maxDay: maxDay
+                maxDay: maxDay,
+                preClosePrice: obj.data[0].preClosePrice
             };
         });
     }

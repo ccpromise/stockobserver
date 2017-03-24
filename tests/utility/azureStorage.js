@@ -24,6 +24,6 @@ blobService.listBlobsSegmented('stockdata', null, function(err, result, response
     })
 })*/
 
-azure.getBlobList('tmp').then((r) => {
+azure.deleteContainer('stockdata').then((r) => {
     console.log(r);
 })

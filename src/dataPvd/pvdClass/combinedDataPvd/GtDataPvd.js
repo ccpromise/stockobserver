@@ -13,8 +13,4 @@ GtDataPvd.prototype.get = function(ts) {
     return this.pvds[0].get(ts) > this.pvds[1].get(ts);
 }
 
-module.exports = {
-    'checkParams': pvdGenerator.checkParams,
-    'pvdID': (paramObj) => { return pvdGenerator.pvdID(paramObj, 'gt'); },
-    'makePvd': (paramObj, id) => { return pvdGenerator.makePvd(paramObj, id, GtDataPvd); }
-}
+module.exports = pvdGenerator(GtDataPvd, 'gt');

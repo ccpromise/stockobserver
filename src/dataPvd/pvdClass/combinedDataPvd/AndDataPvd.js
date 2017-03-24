@@ -13,8 +13,4 @@ AndDataPvd.prototype.get = function(ts) {
     return this.pvds.reduce((pre, cur) => pre && cur.get(ts), true);
 }
 
-module.exports = {
-    'checkParams': pvdGenerator.checkParams,
-    'pvdID': (paramObj) => { return pvdGenerator.pvdID(paramObj, 'and'); },
-    'makePvd': (paramObj, id) => { return pvdGenerator.makePvd(paramObj, id, AndDataPvd); }
-}
+module.exports = pvdGenerator(AndDataPvd, 'and');

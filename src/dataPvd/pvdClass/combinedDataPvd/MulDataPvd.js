@@ -13,8 +13,4 @@ MulDataPvd.prototype.get = function(ts) {
     return this.pvds.reduce((pre, cur) => { return pre * cur.get(ts); }, 1);
 }
 
-module.exports = {
-    'checkParams': pvdGenerator.checkParams,
-    'pvdID': (paramObj) => { return pvdGenerator.pvdID(paramObj, 'mul'); },
-    'makePvd': (paramObj, id) => { return pvdGenerator.makePvd(paramObj, id, MulDataPvd); }
-}
+module.exports = pvdGenerator(MulDataPvd, 'mul');

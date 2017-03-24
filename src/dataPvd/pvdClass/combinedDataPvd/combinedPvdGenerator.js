@@ -33,8 +33,10 @@ function makePvd(paramObj, id, consFunc) {
     });
 }
 
-module.exports = {
-    'checkParams': checkParams,
-    'pvdID': pvdID,
-    'makePvd': makePvd
+module.exports = function(pvd, name) {
+    return {
+        'checkParams': checkParams,
+        'pvdID': (paramObj) => pvdID(paramObj, name),
+        'makePvd': (paramObj, id) => makePvd(paramObj, id, pvd)
+    }
 }

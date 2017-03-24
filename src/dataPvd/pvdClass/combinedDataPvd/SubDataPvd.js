@@ -13,8 +13,4 @@ SubDataPvd.prototype.get = function(ts) {
     return this.pvds.slice(1).reduce((pre, cur) => { return pre - cur.get(ts); }, this.pvds[0].get(ts));
 }
 
-module.exports = {
-    'checkParams': pvdGenerator.checkParams,
-    'pvdID': (paramObj) => { return pvdGenerator.pvdID(paramObj, 'sub'); },
-    'makePvd': (paramObj, id) => { return pvdGenerator.makePvd(paramObj, id, SubDataPvd); }
-}
+module.exports = pvdGenerator(SubDataPvd, 'sub');

@@ -66,3 +66,12 @@ exports.createBlobFromFile = function (container, blob, file) {
         })
     })
 }
+
+exports.deleteContainer = function (container) {
+    return new Promise((resolve, reject) => {
+        blobService.deleteContainer(container, (err, result) => {
+            if(err) reject(err);
+            else resolve(result);
+        })
+    })
+}

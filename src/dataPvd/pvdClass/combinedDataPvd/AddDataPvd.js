@@ -13,8 +13,4 @@ AddDataPvd.prototype.get = function(ts) {
     return this.pvds.reduce((pre, cur) => { return pre + cur.get(ts); }, 0);
 }
 
-module.exports = {
-    'checkParams': pvdGenerator.checkParams,
-    'pvdID': (paramObj) => { return pvdGenerator.pvdID(paramObj, 'add'); },
-    'makePvd': (paramObj, id) => { return pvdGenerator.makePvd(paramObj, id, AddDataPvd); }
-}
+module.exports = pvdGenerator(AddDataPvd, 'add');

@@ -8,27 +8,32 @@ var container = require('../../../config').stockdataContainer;
 
 exports.run = function(secID) {
     secID = secID.toLowerCase();
-    return azure.getBlobToText(container, secID + '.json').then((stockData) => {
-        stockData = JSON.parse(stockData);
-        var nextDay = time.nextDay(time.createDate(stockData.maxDay));
-        return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
-            stockData.maxDay = time.format(newData.maxDay, 'YYYYMMDD');
-            for(date in newData.data) {
-                var formatDate = time.format(date, 'YYYYMMDD');
-                stockData.data[formatDate] = newData.data[date];
+    return azure.createContainerIfNotExists(container).then(() => {
+        azure.getBlobToText(container, secID + '.json').then((stockData) => {
+            stockData = JSON.parse(stockData);
+            var nextDay = time.nextDay(stockData.maxDay);
+            return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
+                var adjFactor = stockData.data[stockData.maxDay] / newData.preClosePrice;
+                stockData.maxDay = time.format(newData.maxDay, 'YYYYMMDD');
+                for(date in newData.data) {
+                    stockData.data[date] = newData.data[date] * adjFactor;
+                }
+                return stockData;
+            });
+        }, (err) => {
+            if(err.code === 'BlobNotFound') {
+                return getHistoryData(secID).then((data) => {
+                    delete data.preClosePrice;
+                    return data;
+                })
             }
-            return stockData;
+            throw err;
+        }).then((data) => {
+            return azure.createBlobFromText(container, secID + '.json', JSON.stringify(data)).then((r) => {
+                console.log('write to blob done.');
+            });
         });
-    }, (err) => {
-        if(err.code === 'BlobNotFound') {
-            return getHistoryData(secID);
-        }
-        throw err;
-    }).then((data) => {
-        return azure.createBlobFromText(container, secID + '.json', JSON.stringify(data)).then((r) => {
-            console.log('write to blob done.');
-        });
-    });
+    })
 }
 
 exports.checkArgs = function(arg) {
