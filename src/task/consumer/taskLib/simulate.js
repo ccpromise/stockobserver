@@ -28,7 +28,7 @@ exports.run = function(args) {
         var dpIn = makePvd(dpInLiteral);
         var dpOut = makePvd(dpOutLiteral);
         var endData = makePvd({ 'type': 'end', 'pack': secID });
-        var todayTs = time.getDateTs(time.today());
+        var todayTs = time.getDateTs(time.yesterday()); // test
         return Promise.all([dpIn, dpOut, endData]).then((arr) => {
             var dpIn = arr[0];
             var dpOut = arr[1];
@@ -55,7 +55,11 @@ exports.run = function(args) {
             var get = postToSimulate([{ 'tradeplanId': tradeplanId, 'secID': secID, 'closed': false }], 'find').then((docs) => {
                 // doc: {_id, tradeplanId, secID, sdts, edts, hdts, ldts, sp, ep, hp, lp, closed}
                 docs = JSON.parse(docs.toString());
-                if(docs === null || docs.length === 0) {
+                if(docs === null) {
+                    console.log('server error when getting open trade');
+                    return;
+                }
+                if(docs.length === 0) {
                     console.log('no open trade of ', secID, ' in ', tradeplanId);
                     return;
                 }
@@ -95,7 +99,7 @@ exports.run = function(args) {
                     console.log('trade updated: ', '\nedts: ', edts, '\nhdts: ', hdts, '\nldts: ', ldts, '\nep: ', ep, '\nhp: ', hp, '\nlp: ', lp, '\nclosed: ', closed)
                     updates.push({
                         'filter': { _id: doc._id },
-                        'update': { $set: { edts: edts, hdts: hdts, ldts: ldts, ep: ep, hp: hp, lp: hp, closed: closed } }
+                        'update': { $set: { edts: edts, hdts: hdts, ldts: ldts, ep: ep, hp: hp, lp: lp, closed: closed } }
                     })
                 });
                 return postToSimulate([updates], 'updateMany'); // to change
