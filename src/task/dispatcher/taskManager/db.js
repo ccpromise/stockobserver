@@ -1,17 +1,18 @@
 
+// taskCol manages all the task status. it does three things:
+// 1. find ready task and return to dispatcher.
+// 2. clear time out task.
+// 3. accept result from dispatcher, check it and update collection.
 var db = require('../db');
 var taskCol = db.getCollection('taskCol', { 'task': true, 'status': true, 'lastProcessingTime': true, 'log': true });
 var taskStatus = require('../../../constants').taskStatus;
-var utility = require('../../../utility');
-var time = utility.time;
-var config = require('../../../config');
-var maxTaskDuration = config.maxTaskDuration;
+var time = require('../../../utility').time;
+var maxTaskDuration = require('../../../config').maxTaskDuration;
 var ObjectId = require('mongodb').ObjectId;
 exports.taskCol = taskCol;
 
-// test
+// init
 taskCol.remove({});
-//taskCol.find({'status': 3}).then((r) => console.log(JSON.stringify(r)));
 
 taskCol.clearTimeout = function() {
     return taskCol.update({
@@ -38,7 +39,7 @@ taskCol.findReadyTask = function() {
         }}
     }).then((r) => {
         return r.value === null ? null : {
-            'id': r.value._id.toString(),
+            '_id': r.value._id.toString(),
             'task': r.value.task,
             'lastProcessedTs': r.value.lastProcessedTs
         }
@@ -46,8 +47,8 @@ taskCol.findReadyTask = function() {
 }
 
 taskCol.checkResultValidity = function(result) {
-    var id = new ObjectId(result.id);
-    return taskCol.findOne({ '_id': id }, { 'lastProcessedTs': true, 'status': true }).then((r) => {
+    var _id = new ObjectId(result._id);
+    return taskCol.findOne({ '_id': _id }, { 'lastProcessedTs': true, 'status': true }).then((r) => {
         return r !== null && r.lastProcessedTs === result.lastProcessedTs && r.status === taskStatus.processing;
     });
 }

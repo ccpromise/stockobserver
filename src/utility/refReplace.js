@@ -24,7 +24,7 @@ var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
                 stack[key] = true;
                 var refValue = findRefValue(valueMap[key], valueMap, refValueMap, stack, refTemplate);
                 refValueMap[key] = refValue;
-                stack[key] = false;
+                delete stack[key];
                 return refValue;
             }
             return refValueMap[key];

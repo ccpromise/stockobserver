@@ -9,10 +9,11 @@ var container = require('../../../config').stockdataContainer;
 exports.run = function(secID) {
     secID = secID.toLowerCase();
     return azure.createContainerIfNotExists(container).then(() => {
-        azure.getBlobToText(container, secID + '.json').then((stockData) => {
+        return azure.getBlobToText(container, secID + '.json').then((stockData) => {
             stockData = JSON.parse(stockData);
             var nextDay = time.nextDay(stockData.maxDay);
             return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
+                console.log(newData);
                 var adjFactor = stockData.data[stockData.maxDay] / newData.preClosePrice;
                 stockData.maxDay = time.format(newData.maxDay, 'YYYYMMDD');
                 for(date in newData.data) {

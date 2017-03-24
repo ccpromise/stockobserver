@@ -8,16 +8,17 @@ var file = utility.file;
 var taskStatus = require('../../constants').taskStatus;
 var waitTime = config.waitTime;
 var taskLib = require('./taskLib');
+var httpReq = require('./httpReqTmpl');
 
 var run = function() {
     var len = waitTime.length;
     var i = 0;
     var loop = function() {
         setTimeout(() => {
-            console.log('wating task...');
-            postToTaskManager(null, 'get').then((task) => {
+            console.log('waiting task...');
+            httpReq('/taskManager', null, 'get').then((task) => {
                 task = JSON.parse(task.toString());
-                if(task === null) i = (i === len - 1 ? i : i + 1);
+                if(task === null) i = (i === (len - 1) ? i : i + 1);
                 else return execute(task).then(() => i = 0);
             }).catch(err => console.log(err)).then(loop);
         }, waitTime[i]);
@@ -30,8 +31,8 @@ var execute = function(task) {
     var taskType = task.task.type;
     var args = task.task.pack;
     var invalidArg = {
-        id: task.id,
-        status: taskStatus.success,
+        _id: task._id,
+        status: taskStatus.fail,
         lastProcessedTs: task.lastProcessedTs,
         log: {
             'desc': 'task fail',
@@ -42,8 +43,9 @@ var execute = function(task) {
         var handler = taskLib[taskType];
         if(handler.checkArgs(args)) {
             return handler.run(args).then(() => {
+                console.log('task succeed');
                 return {
-                    id: task.id,
+                    _id: task._id,
                     status: taskStatus.success,
                     lastProcessedTs: task.lastProcessedTs,
                     log: {
@@ -53,8 +55,9 @@ var execute = function(task) {
                     }
                 }
             }, (err) => {
+                console.log('task fail');
                 return {
-                    id: task.id,
+                    _id: task._id,
                     status: taskStatus.fail,
                     lastProcessedTs: task.lastProcessedTs,
                     log: {
@@ -64,29 +67,14 @@ var execute = function(task) {
                     }
                 }
             }).then((r) => {
-                return postToTaskManager(r, 'report');
+                return httpReq('/taskManager', r, 'report');
             });
         }
         invalidArg.log.err = 'invalid arguments: ' + args;
-        return postToTaskManager(invalidArg, 'report');
+        return httpReq('/taskManager', invalidArg, 'report');
     }
     invalidArg.log.err = 'invalid task type: ' + taskType;
-    return postToTaskManager(invalidArg, 'report');
-}
-
-var postToTaskManager = function(args, verb) {
-    var opt = {
-        host: config.dispatcherHost,
-        port: config.dispatcherPort,
-        path: 'taskManager',
-        method: 'POST',
-        data: JSON.stringify(args),
-        headers: {
-            'content-type': 'application/json',
-            verb: verb
-        }
-    }
-    return http.request(opt);
+    return httpReq('/taskManager', invalidArg, 'report');
 }
 
 // http
@@ -95,7 +83,7 @@ var getReadyTask = function() {
     var opt = {
         host: config.dispatcherHost,
         port: config.dispatcherPort,
-        path: 'taskManger',
+        path: 'taskManager',
         method: 'POST',
         data: JSON.stringify(null),
         headers: {
@@ -108,7 +96,7 @@ var getReadyTask = function() {
     });
 }
 
-var postToTaskManger = function(data) {
+var postToTaskManager = function(data) {
     console.log('send back result: ', data);
     var postData = JSON.stringify(data);
     var opt = {

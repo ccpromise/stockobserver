@@ -6,17 +6,17 @@ var map = {
     'report': report
 }
 
-module.exports = function(arg, verb, res) {
+module.exports = function(args, verb, res) {
     if(!(verb in map)) {
         res.writeHead(400);
         res.end();
         return;
     }
-    map[verb](arg, res);
+    map[verb](args, res);
 }
 
-
-function get(arg, res) {
+// find and return ready task to consumer.
+function get(args, res) {
     taskCol.findReadyTask().then((r) => {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify(r));
@@ -27,13 +27,14 @@ function get(arg, res) {
     });
 }
 
+// accept result from consumer, check it and update collection.
 function report(result, res) {
     console.log('task collection received result report: ', result);
     taskCol.checkResultValidity(result).then((r) => {
-        var id = new ObjectId(result.id);
+        var _id = new ObjectId(result._id);
         if(r) {
             return taskCol.update({
-                _id: id
+                _id: _id
             }, {
                 $set: { status: result.status },
                 $push: { log: result.log }

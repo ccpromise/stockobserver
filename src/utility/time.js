@@ -114,6 +114,12 @@ exports.nextDay = function(x) {
     return y;
 }
 
+exports.offsetDay = function(x, offset) {
+    var y = exports.createDate(x);
+    y.setUTCDate(y.getUTCDate() + offset);
+    return y;
+}
+
 exports.isAfter = function(x, y) {
     var xts = moment.utc(x).valueOf();
     var yts = moment.utc(y).valueOf();

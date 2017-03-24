@@ -94,24 +94,37 @@ var clearTimeout = function() {
     loop();
 }
 
+
 var createServer = function() {
+    var pathLib = {
+        '/taskManager': require('./taskManager/http'),
+        '/simulate': require('./simulateTrade/simulate/http').simulate,
+        '/simTs': require('./simulateTrade/simulate/http').simTs,
+        '/trade': require('./simulateTrade/trade/http')
+    };
     var server = http.createServer((req, res) => {
         var body = [];
-        var pathname = '.' + url.parse(req.url).pathname;
+        var pathname = url.parse(req.url).pathname;
         var verb = req.headers.verb;
         req.on('data', (chunk) => body.push(chunk));
         req.on('end', () => {
-            try {
-                var args = JSON.parse(Buffer.concat(body).toString());
-                var handler = require(pathname + '/http');
+            if(pathname in pathLib) {
+                try {
+                    var args = JSON.parse(body.toString());
+                }
+                catch (err) {
+                    console.log('invalid JSON format');
+                    res.writeHead(400);
+                    res.end();
+                    return;
+                }
+                pathLib[pathname](args, verb, res); //parse body in each http handler
             }
-            catch (err){
-                console.log(err);
+            else {
+                console.log('invalid path');
                 res.writeHead(400);
                 res.end();
-                return;
             }
-            handler(args, verb, res);
         })
     });
     server.listen(port, host);
