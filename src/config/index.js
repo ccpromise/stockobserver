@@ -1,7 +1,7 @@
 var process = require('process');
 
 // http
-exports.access_token = '1435e205f9d203055d546b1ed7cc991f7363100bbed9c7bf9a3a0f40c5362a91';
+exports.access_token = 'f15e84b1cb72b925d37547a27f08682b3f74c464f93b67bd6864362c88dd47b2';
 exports.isFiddler = process.argv.indexOf('-f') > -1;
 exports.fiddlerHost = '127.0.0.1';
 exports.fiddlerPort = 8888;
