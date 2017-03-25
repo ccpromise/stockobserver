@@ -11,7 +11,7 @@ module.exports = function(template, valueMap, refTemplate) {
     return findRefValue(template, valueMap, {}, {}, refTemplate);
 }
 
-var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
+var findRefValue = function(value, valueMap, refValueMap, processingRef, refTemplate) {
     if(validate.isNum(value) || validate.isBoolean(value)) {
         return value;
     }
@@ -20,11 +20,10 @@ var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
             var key = refTemplate.getRef(value);
             if(!(key in refValueMap)) {
                 if(!(key in valueMap)) throw new Error('invalid reference');
-                if(key in stack) throw new Error('circular reference');
-                stack[key] = true;
-                var refValue = findRefValue(valueMap[key], valueMap, refValueMap, stack, refTemplate);
+                if(key in processingRef) throw new Error('circular reference');
+                processingRef[key] = true;
+                var refValue = findRefValue(valueMap[key], valueMap, refValueMap, processingRef, refTemplate);
                 refValueMap[key] = refValue;
-                delete stack[key];
                 return refValue;
             }
             return refValueMap[key];
@@ -33,7 +32,7 @@ var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
     }
     else if(validate.isArr(value)) {
         var refValue = value.map((item) => {
-            return findRefValue(item, valueMap, refValueMap, stack, refTemplate);
+            return findRefValue(item, valueMap, refValueMap, processingRef, refTemplate);
         });
         return refValue;
     }
@@ -41,7 +40,7 @@ var findRefValue = function(value, valueMap, refValueMap, stack, refTemplate) {
         var keys = Object.keys(value);
         var refValue = {};
         keys.forEach((k) => {
-            refValue[k] = findRefValue(value[k], valueMap, refValueMap, stack, refTemplate);
+            refValue[k] = findRefValue(value[k], valueMap, refValueMap, processingRef, refTemplate);
         });
         return refValue;
     }

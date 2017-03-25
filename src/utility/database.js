@@ -122,15 +122,15 @@ Collection.prototype.upsert = function(filter, doc, opt) {
     return this.update(filter, doc, opt);
 }
 
-// ops: [
+// doc: [
 // {'filter': , 'update': }
 // ]
-Collection.prototype.updateMany = function(ops) {
+Collection.prototype.updateMany = function(docs) {
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             var bulk = col.initializeUnorderedBulkOp();
-            ops.forEach(op => {
-                bulk.find(op.filter).update(op.update);
+            docs.forEach(doc => {
+                bulk.find(doc.filter).update(doc.update);
             });
             bulk.execute((err, r) => {
                 if(err) reject(err);
@@ -140,15 +140,15 @@ Collection.prototype.updateMany = function(ops) {
     })
 }
 
-// ops: [
+// docs: [
 // {'filter': , 'update': }
 // ]
-Collection.prototype.upsertMany = function(ops) {
+Collection.prototype.upsertMany = function(docs) {
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             var bulk = col.initializeUnorderedBulkOp();
-            ops.forEach(op => {
-                bulk.find(op.filter).upsert().update(op.update);
+            docs.forEach(doc => {
+                bulk.find(doc.filter).upsert().update(doc.update);
             });
             bulk.execute((err, r) => {
                 if(err) reject(err);
@@ -213,7 +213,10 @@ Collection.prototype.find = function(filter, field) {
 // maxTimeMS: number,
 // collation: object
 // }
-Collection.prototype.findOne = function(filter, opt) {
+Collection.prototype.findOne = function(filter, field, opt) {
+    opt = opt || {};
+    field = field || this.defaultFields;
+    opt.fields = field;
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.findOne(filter, opt, (err, r) => {

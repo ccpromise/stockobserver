@@ -1,28 +1,28 @@
 
 var taskCol = require('./db').taskCol;
 var ObjectId = require('mongodb').ObjectId;
-var map = {
-    'get': get,
-    'report': report
-}
 
-module.exports = function(args, verb, res) {
-    if(!(verb in map)) {
+module.exports = function(arg, verb, res) {
+    if(verb === 'get') {
+        get(res);
+    }
+    else if(verb === 'report') {
+        report(arg, res);
+    }
+    else {
         res.writeHead(400);
         res.end();
-        return;
     }
-    map[verb](args, res);
 }
 
 // find and return ready task to consumer.
-function get(args, res) {
+function get(res) {
     taskCol.findReadyTask().then((r) => {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify(r));
     }, (err) => {
         res.writeHead(500, { 'content-type': 'application/json' });
-        res.end(JSON.stringify(null));
+        res.end('null');
         console.log('err when calling task.getReadyTask, err: ', err);
     });
 }

@@ -3,6 +3,7 @@ var utility = require('../../../utility');
 var validate = utility.validate;
 var object = utility.object;
 var pvdGenerator = require('../../../dataPvd/makeDataPvd');
+var CombinedDataPvd = require('./CombinedDataPvd');
 
 // {pvds: idx: }
 function checkParams(paramObj) {
@@ -33,10 +34,19 @@ function makePvd(paramObj, id, consFunc) {
     });
 }
 
-module.exports = function(pvd, name) {
+var combinedPvdGenerator = function(pvd, name) {
     return {
         'checkParams': checkParams,
         'pvdID': (paramObj) => pvdID(paramObj, name),
         'makePvd': (paramObj, id) => makePvd(paramObj, id, pvd)
     }
+}
+
+module.exports = function(name, getFunc) {
+    function CombinedDataPvdModel(pvds, domainIdx, id) {
+        CombinedDataPvd.call(this, pvds, domainIdx, id);
+    }
+    CombinedDataPvdModel.prototype = Object.create(CombinedDataPvd.prototype);
+    CombinedDataPvdModel.prototype.get = getFunc;
+    return combinedPvdGenerator(CombinedDataPvdModel, name);
 }

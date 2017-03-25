@@ -94,14 +94,13 @@ var clearTimeout = function() {
     loop();
 }
 
-
+var pathLib = {
+    '/taskManager': require('./taskManager/http'),
+    '/simulate': require('./simulateTrade/simulate/http').simulate,
+    '/lastSimDate': require('./simulateTrade/simulate/http').lastSimDate,
+    '/trade': require('./simulateTrade/trade/http')
+};
 var createServer = function() {
-    var pathLib = {
-        '/taskManager': require('./taskManager/http'),
-        '/simulate': require('./simulateTrade/simulate/http').simulate,
-        '/simTs': require('./simulateTrade/simulate/http').simTs,
-        '/trade': require('./simulateTrade/trade/http')
-    };
     var server = http.createServer((req, res) => {
         var body = [];
         var pathname = url.parse(req.url).pathname;
@@ -110,7 +109,7 @@ var createServer = function() {
         req.on('end', () => {
             if(pathname in pathLib) {
                 try {
-                    var args = JSON.parse(body.toString());
+                    var arg = JSON.parse(body.toString());
                 }
                 catch (err) {
                     console.log('invalid JSON format');
@@ -118,7 +117,7 @@ var createServer = function() {
                     res.end();
                     return;
                 }
-                pathLib[pathname](args, verb, res); //parse body in each http handler
+                pathLib[pathname](arg, verb, res);
             }
             else {
                 console.log('invalid path');

@@ -14,12 +14,17 @@ var simulateCol = db.getCollection('simulate', {
     'lp': true,
     'closed': true
 });
-var simTs = db.getCollection('simTs', {
+var lastSimDateCol = db.getCollection('lastSimDateCol', {
     '_id': true,
     'tradeplanId': true,
     'secID': true,
-    'simTs': true
+    'lastSimDate': true
 })
 
 exports.simulateCol = simulateCol;
-exports.simTs = simTs;
+exports.lastSimDateCol = lastSimDateCol;
+
+//simulateCol.find({}).then(console.log);
+//lastSimDateCol.find({}).then(console.log);
+simulateCol.remove({});
+lastSimDateCol.remove({});

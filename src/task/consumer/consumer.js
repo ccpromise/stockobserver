@@ -18,7 +18,7 @@ var run = function() {
             console.log('waiting task...');
             httpReq('/taskManager', null, 'get').then((task) => {
                 task = JSON.parse(task.toString());
-                if(task === null) i = (i === (len - 1) ? i : i + 1);
+                if(task === null) i = (i === (len - 1) ? i : (i + 1));
                 else return execute(task).then(() => i = 0);
             }).catch(err => console.log(err)).then(loop);
         }, waitTime[i]);

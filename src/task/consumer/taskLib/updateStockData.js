@@ -13,11 +13,16 @@ exports.run = function(secID) {
             stockData = JSON.parse(stockData);
             var nextDay = time.nextDay(stockData.maxDay);
             return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
-                console.log(newData);
-                var adjFactor = stockData.data[stockData.maxDay] / newData.preClosePrice;
+                // {data:, minDay:, maxDay:, preClosePrice:}
+                var adjFactor = stockData.data[stockData.maxDay].e / newData.preClosePrice;
                 stockData.maxDay = time.format(newData.maxDay, 'YYYYMMDD');
                 for(date in newData.data) {
-                    stockData.data[date] = newData.data[date] * adjFactor;
+                    var beforeAdj = newData.data[date];
+                    var afterAdj = {};
+                    for(key in beforeAdj) {
+                        afterAdj[key] = beforeAdj[key] * adjFactor;
+                    }
+                    stockData.data[date] = afterAdj;
                 }
                 return stockData;
             });
