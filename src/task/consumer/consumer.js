@@ -1,12 +1,7 @@
 
-var config = require('../../config');
-var utility = require('../../utility');
-var validate = utility.validate;
-var time = utility.time;
-var http = utility.http;
-var file = utility.file;
+var time = require('../../utility').time;
 var taskStatus = require('../../constants').taskStatus;
-var waitTime = config.waitTime;
+var waitTime = require('../../config').waitTime;
 var taskLib = require('./taskLib');
 var httpReq = require('./httpReqTmpl');
 

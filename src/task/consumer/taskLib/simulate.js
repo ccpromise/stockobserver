@@ -3,11 +3,6 @@ var utility = require('../../../utility')
 var validate = utility.validate;
 var object = utility.object;
 var refReplace = utility.refReplace;
-var time = utility.time;
-var http = utility.http;
-var config = require('../../../config');
-var host = config.dispatcherHost;
-var port = config.dispatcherPort;
 var makePvd = require('../../../dataPvd').makePvd;
 var httpReq = require('../httpReqTmpl');
 
