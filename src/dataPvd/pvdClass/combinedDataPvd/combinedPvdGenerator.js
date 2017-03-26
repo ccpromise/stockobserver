@@ -6,9 +6,13 @@ var pvdGenerator = require('../../../dataPvd/makeDataPvd');
 var CombinedDataPvd = require('./CombinedDataPvd');
 
 // {pvds: idx: }
-function checkParams(paramObj) {
+function checkParams(paramObj, minPvdN, maxPvdN) {
+    minPvdN = minPvdN || 1;
+    maxPvdN = maxPvdN || Infinity;
+    var pvdN = paramObj.pvds.length;
     if(!(validate.isObj(paramObj) && object.numOfKeys(paramObj) === 2 &&
-    validate.isArr(paramObj.pvds) && validate.isNonNegInt(paramObj.idx) && paramObj.idx < paramObj.pvds.length))
+    validate.isArr(paramObj.pvds) && pvdN >= minPvdN && pvdN <= maxPvdN
+    && validate.isNonNegInt(paramObj.idx) && paramObj.idx < pvdN))
         return false;
     var N = paramObj.pvds.length;
     for(var i = 0; i < N; i++) {
@@ -19,34 +23,21 @@ function checkParams(paramObj) {
 }
 
 function pvdID(paramObj, name) {
-    var subID = '';
-    paramObj.pvds.forEach((pvd) => {
-        subID = subID + '_' + pvdGenerator.pvdID(pvd);
-    })
-    return name + '_' + paramObj.idx + subID;
+    return name + '_' + paramObj.idx + paramObj.pvds.map(pvd => pvdGenerator.pvdID(pvd)).join('_');
 }
 
-function makePvd(paramObj, id, consFunc) {
+function makePvd(paramObj, id, getOperator) {
     return Promise.all(paramObj.pvds.map((pvd) => {
         return pvdGenerator.makePvd(pvd);
     })).then((pvds) => {
-        return new consFunc(pvds, paramObj.idx, id);
+        return new CombinedDataPvd(pvds, paramObj.idx, id, getOperator);
     });
 }
 
-var combinedPvdGenerator = function(pvd, name) {
+module.exports = function(name, getOperator, minPvdN, maxPvdN) {
     return {
-        'checkParams': checkParams,
+        'checkParams': (paramObj) => checkParams(paramObj, minPvdN, maxPvdN),
         'pvdID': (paramObj) => pvdID(paramObj, name),
-        'makePvd': (paramObj, id) => makePvd(paramObj, id, pvd)
+        'makePvd': (paramObj, id) => makePvd(paramObj, id, getOperator)
     }
-}
-
-module.exports = function(name, getFunc) {
-    function CombinedDataPvdModel(pvds, domainIdx, id) {
-        CombinedDataPvd.call(this, pvds, domainIdx, id);
-    }
-    CombinedDataPvdModel.prototype = Object.create(CombinedDataPvd.prototype);
-    CombinedDataPvdModel.prototype.get = getFunc;
-    return combinedPvdGenerator(CombinedDataPvdModel, name);
 }

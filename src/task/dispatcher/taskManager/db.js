@@ -9,10 +9,8 @@ var taskStatus = require('../../../constants').taskStatus;
 var time = require('../../../utility').time;
 var maxTaskDuration = require('../../../config').maxTaskDuration;
 var ObjectId = require('mongodb').ObjectId;
-exports.taskCol = taskCol;
 
-// init
-taskCol.remove({});
+exports.taskCol = taskCol;
 
 taskCol.clearTimeout = function() {
     return taskCol.update({

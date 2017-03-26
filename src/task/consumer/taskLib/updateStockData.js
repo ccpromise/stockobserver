@@ -3,6 +3,7 @@ var utility = require('../../../utility');
 var time = utility.time;
 var azure = utility.azureStorage;
 var validate = utility.validate;
+var object = utility.object;
 var getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
 var container = require('../../../config').stockdataContainer;
 
@@ -17,12 +18,12 @@ exports.run = function(secID) {
                 var adjFactor = stockData.data[stockData.maxDay].e / newData.preClosePrice;
                 stockData.maxDay = time.format(newData.maxDay, 'YYYYMMDD');
                 for(date in newData.data) {
-                    var beforeAdj = newData.data[date];
-                    var afterAdj = {};
-                    for(key in beforeAdj) {
-                        afterAdj[key] = beforeAdj[key] * adjFactor;
-                    }
-                    stockData.data[date] = afterAdj;
+                    var adjData = object.clone(newData.data[date]);
+                    var price = ['o', 'e', 'h', 'l'];
+                    prices.forEach((key) => {
+                        adjData[key] *= adjFactor;
+                    });
+                    stockData.data[date] = adjData;
                 }
                 return stockData;
             });

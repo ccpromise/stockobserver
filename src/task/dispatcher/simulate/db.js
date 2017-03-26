@@ -1,5 +1,5 @@
 
-var db = require('../../db');
+var db = require('../db');
 var simulateCol = db.getCollection('simulate', {
     '_id': true,
     'tradeplanId': true,
@@ -23,8 +23,3 @@ var lastSimDateCol = db.getCollection('lastSimDateCol', {
 
 exports.simulateCol = simulateCol;
 exports.lastSimDateCol = lastSimDateCol;
-
-//simulateCol.find({}).then(console.log);
-//lastSimDateCol.find({}).then(console.log);
-simulateCol.remove({});
-lastSimDateCol.remove({});

@@ -1,7 +1,7 @@
 
 var tradeplanCol = require('./db').tradeplanCol;
-var replaceObjId = require('../../../../utility').replaceObjId;
-var dbOperator = require('../../dbOperator');
+var replaceObjId = require('../../../utility').replaceObjId;
+var dbOperator = require('../dbOperator');
 var map = {
     'findOne': true
 }

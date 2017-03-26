@@ -96,9 +96,9 @@ var clearTimeout = function() {
 
 var pathLib = {
     '/taskManager': require('./taskManager/http'),
-    '/simulate': require('./simulateTrade/simulate/http').simulate,
-    '/lastSimDate': require('./simulateTrade/simulate/http').lastSimDate,
-    '/trade': require('./simulateTrade/trade/http')
+    '/simulate': require('./simulate/http').simulate,
+    '/lastSimDate': require('./simulate/http').lastSimDate,
+    '/trade': require('./trade/http')
 };
 var createServer = function() {
     var server = http.createServer((req, res) => {
