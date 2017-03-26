@@ -1,0 +1,12 @@
+
+.pagination ul{
+    list-style-type: none;
+}
+
+.pagination li {
+    display: inline;
+}
+
+button.isSelected {
+    color: red;
+}

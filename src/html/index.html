@@ -1,0 +1,55 @@
+
+<html>
+    <head>
+        <script src="./vue.js"></script>
+        <link rel="stylesheet" href="./app.css">
+    </head>
+    <body>
+        <div id="app">
+            <nav>
+                <!-- TODO: search box -->
+            </nav>
+            <div class="pagination">
+                <a>
+                <button type="button" v-on:click="selectPage(1)" v-bind:disabled="pagination.currentPage === 1 || pagination.totalPage === 0">First</button>
+                </a>
+                <ul>
+                    <li>
+                        <button type="button" v-on:click="selectPage(pagination.currentPage-1)" v-bind:disabled="pagination.currentPage === 1 || pagination.totalPage === 0">Previous</button>
+                    </li>
+                    <li></li>
+                    <li v-for="page in pagination.filterPages">
+                        <button type="button" v-on:click="selectPage(page)" v-bind:class="{ isSelected: pagination.currentPage === page }">{{page}}</button> <!-- TODO: page will work here? or search in vue -->
+                    </li>
+                    <li></li>
+                    <li>
+                        <button type="button" v-on:click="selectPage(pagination.currentPage+1)" v-bind:disabled="pagination.currentPage === pagination.totalPage || pagination.totalPage === 0">Next</button>
+                    </li>
+                </ul>
+                <button type="button" v-on:click="selectPage(pagination.totalPage)" v-bind:disabled="pagination.currentPage === pagination.totalPage || pagination.totalPage === 0">Last</button>
+            </div>
+            <div class="paginatedItems">
+                <table>
+                    <tr>
+                        <th>SecID</th>
+                        <th>Closed</th>
+                        <th>StartDate</th>
+                        <th>StartPrice</th>
+                        <th>LatestDate/EndDate</th>
+                        <th>LatestPrice/EndPrice</th>
+                        <th>TradePlan</th>
+                    </tr>
+                    <tr v-for="item in paginatedItems">
+                        <td>{{item.secID}}</td>
+                        <td>{{item.closed}}</td>
+                        <td>{{item.startDate}}</td>
+                        <td>{{item.startPrice}}</td>
+                        <td>{{item.endDate}}</td>
+                        <td>{{item.endPrice}}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <script src='./app.js'></script>
+    </body>
+</html>
