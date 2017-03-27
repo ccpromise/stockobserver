@@ -102,6 +102,16 @@ var pathLib = {
 };
 var createServer = function() {
     var server = http.createServer((req, res) => {
+        // deal with preflight
+        if(req.headers['access-control-request-method']) {
+            res.writeHead(200, {
+                'Access-Control-Allow-Origin': req.headers.origin,
+                'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
+                'Access-Control-Allow-Method': req.headers['access-control-request-method']
+            });
+            res.end();
+            return;
+        }
         var body = [];
         var pathname = url.parse(req.url).pathname;
         var verb = req.headers.verb;
@@ -117,7 +127,7 @@ var createServer = function() {
                     res.end();
                     return;
                 }
-                pathLib[pathname](arg, verb, res);
+                pathLib[pathname](arg, verb, res, req);
             }
             else {
                 console.log('invalid path');

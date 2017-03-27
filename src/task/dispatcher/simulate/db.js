@@ -23,3 +23,5 @@ var lastSimDateCol = db.getCollection('lastSimDateCol', {
 
 exports.simulateCol = simulateCol;
 exports.lastSimDateCol = lastSimDateCol;
+simulateCol.find({}).then(console.log);
+lastSimDateCol.find({}).then(console.log);

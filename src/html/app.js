@@ -1,14 +1,23 @@
-function item(secID) {
-    this.secID = secID;
+
+var dispatcherUrl = 'http://127.0.0.1:8000/simulate';
+var getAllSimTrade = function(callback) {
+    var req = new XMLHttpRequest();
+    console.log(dispatcherUrl);
+    req.onreadystatechange = function() {
+        if(req.readyState === 4 && req.status === 200) {
+            var data = JSON.parse(req.responseText);
+            data.sort((x, y) => { return x.secID < y.secID ? -1 : 1; });
+            callback(data);
+        }
+        else {
+            callback([]);
+        }
+    }
+    req.open('POST', dispatcherUrl, true);
+    req.setRequestHeader('verb', 'getMul'); // why not use find
+    req.send('null');
 }
 
-function getAllSimTrade() {
-    var items = [];
-    for(var i = 0; i < 102; i ++){
-        items.push(new item(i));
-    }
-    return items;
-}
 
 window.app = new Vue({
     el: '#app',
@@ -60,19 +69,36 @@ window.app = new Vue({
             for(let i = (page - 1) * this.pagination.itemPerPage; i < page * this.pagination.itemPerPage && i < this.filteredItems.length; i ++) {
                 this.paginatedItems.push(this.filteredItems[i]);
             }
+        },
+        formatTs(dateTs) {
+            return new Date(dateTs * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        },
+        loadData(page) {
+            getAllSimTrade((data) => {
+                this.items = data;
+                this.filteredItems = this.items.filter((item) => {
+                    return item.secID.indexOf(this.searchItem) >= 0;
+                })
+                this.buildPagination();
+                this.selectPage(page || 1);
+            })
+        },
+        search() {
+            this.filteredItems = this.items.filter((item) => {
+                return item.secID.indexOf(this.searchItem) >= 0;
+            });
+            this.buildPagination();
+            this.selectPage(1);
+        },
+        clearSearch() {
+            this.searchItem = '';
+            search();
+        },
+        update() {
+            this.loadData(this.currentPage);
         }
     },
     mounted() {
-        this.items = getAllSimTrade();
-        this.filteredItems = this.items;
-        this.buildPagination();
-        this.selectPage(1);
-        /*
-        getAllSimTrade().then((data) => { // data is an array
-            this.items = data;
-            this.filteredItems = data;
-            this.buildPagination();
-            this.selectPage(1);
-        });*/
+        this.loadData();
     }
 });

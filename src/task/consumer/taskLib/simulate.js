@@ -17,7 +17,6 @@ exports.run = function(args) {
 
     return httpReq('/trade', { filter: { _id: tradeplanId } }, 'findOne').then((r) => {
         // plan: {_id: , desc, dpInTmpl, dpOutTmpl}
-        console.log('find trade plan!');
         var plan = JSON.parse(r.toString());
         if(plan === null) return Promise.reject(new Error('invalid tradeplanId'));
         var dpInLiteral = refReplace(plan.dpInTmpl, valueMap);
