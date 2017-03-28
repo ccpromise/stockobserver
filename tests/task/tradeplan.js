@@ -13,7 +13,7 @@ getSecID().then((list) => {
     var i = 0;
     var N = list.length;
 
-    async.while(() => {
+    async.parallel(() => {
         return i < N;
     }, () => {
         var secID = list[i++];
@@ -21,5 +21,5 @@ getSecID().then((list) => {
             'tradeplanId': 'MA1060',
             'secID': secID.toLowerCase()
         }).then(() => console.log(secID, ' done!')).catch(console.log);
-    });
+    }, 10);
 }).then(() => console.log('done!')).catch(err => console.log(err));
