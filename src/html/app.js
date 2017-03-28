@@ -43,7 +43,9 @@ new Vue({
     },
     methods: {
         buildPagination: function () {
-            var totalItem = this.filteredItems.length;
+            this.filteredItems = this.items.filter((item) => {
+                return item.secID.indexOf(this.searchItem) >= 0;
+            });
         },
         selectPage: function (page) {
             this.pagination.currentPage = page;
@@ -79,17 +81,11 @@ new Vue({
         loadData: function (page) {
             getAllSimTrade((data) => {
                 this.items = data;
-                this.filteredItems = this.items.filter((item) => {
-                    return item.secID.indexOf(this.searchItem) >= 0;
-                });
                 this.buildPagination();
                 this.selectPage(page || 1);
             })
         },
         search: function () {
-            this.filteredItems = this.items.filter((item) => {
-                return item.secID.indexOf(this.searchItem) >= 0;
-            });
             this.buildPagination();
             this.selectPage(1);
         },

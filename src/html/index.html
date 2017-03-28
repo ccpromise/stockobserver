@@ -41,9 +41,9 @@
                     <tr v-for="item in paginatedItems">
                         <td>{{item.secID}}</td>
                         <td>{{item.closed}}</td>
-                        <td>{{sdts | formatTs}}</td>
+                        <td>{{item.sdts | formatTs}}</td>
                         <td>{{item.sp}}</td>
-                        <td>{{edts | formatTs}}</td>
+                        <td>{{item.edts | formatTs}}</td>
                         <td>{{item.ep}}</td>
                         <td>{{item.tradeplanId}}</td>
                     </tr>

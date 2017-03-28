@@ -3,6 +3,7 @@ var utility = require('../../../utility')
 var validate = utility.validate;
 var object = utility.object;
 var refReplace = utility.refReplace;
+var time = utility.time;
 var makePvd = require('../../../dataPvd').makePvd;
 var httpReq = require('../httpReqTmpl');
 
@@ -28,30 +29,33 @@ exports.run = function(args) {
             var obj = JSON.parse(r.toString());
             return obj === null ? null : obj.lastSimDate;
         });
-        return Promise.all([dpIn, dpOut, endData, lastSimDate]).then((arr) => {
-            var dpIn = arr[0];
-            var dpOut = arr[1];
-            var endData = arr[2];
-            var minTs = dpIn.minTs;
-            var maxTs = dpIn.maxTs;
-            var startTs = arr[3] === null ? minTs : dpIn.forwardDateTs(arr[3], 1);
+        return lastSimDate.then((date) => {
+            if(date === time.getDateTs(time.today())) return;
+            return Promise.all([dpIn, dpOut, endData]).then((arr) => {
+                var dpIn = arr[0];
+                var dpOut = arr[1];
+                var endData = arr[2];
+                var minTs = dpIn.minTs;
+                var maxTs = dpIn.maxTs;
+                var startTs = date === null ? minTs : dpIn.forwardDateTs(date, 1);
 
-            if(startTs === -1) return;
-            return postNewSim(startTs, dpIn, endData, tradeplanId, secID).then(() => {
-                return httpReq('/simulate', { filter: {
-                    'tradeplanId': tradeplanId,
-                    'secID': secID,
-                    'closed': false
-                } }, 'find').then((r) => { return JSON.parse(r.toString()); });
-            }).then((sims) => {
-                console.log('find old sims: ', sims);
-                return updateOldSim(sims, dpOut, endData);
-            }).then(() => {
-                console.log('set sim ts: ', maxTs);
-                return httpReq('/lastSimDate', { filter: { tradeplanId: tradeplanId, secID: secID }, update: { $set: { lastSimDate: maxTs } } }, 'upsert');
-            });
-        });
-    });
+                if(startTs === -1) return;
+                return postNewSim(startTs, dpIn, endData, tradeplanId, secID).then(() => {
+                    return httpReq('/simulate', { filter: {
+                        'tradeplanId': tradeplanId,
+                        'secID': secID,
+                        'closed': false
+                    } }, 'find').then((r) => { return JSON.parse(r.toString()); });
+                }).then((sims) => {
+                    console.log('find old sims: ', sims);
+                    return updateOldSim(sims, dpOut, endData);
+                }).then(() => {
+                    console.log('set sim ts: ', maxTs);
+                    return httpReq('/lastSimDate', { filter: { tradeplanId: tradeplanId, secID: secID }, update: { $set: { lastSimDate: maxTs } } }, 'upsert');
+                })
+            })
+        })
+    })
 }
 
 function postNewSim(startTs, dpIn, endData, tradeplanId, secID) {

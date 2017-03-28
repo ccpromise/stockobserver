@@ -140,3 +140,10 @@ exports.format = function(x, format) {
     format = format || 'YYYY-MM-DD hh:mm:sssZ'
     return moment.utc(x).format(format);
 }
+
+exports.sameDay = function(x, y) {
+    var format = 'YYYYMMDD';
+    console.log(exports.format(x, format));
+    console.log(exports.format(y, format));
+    return exports.format(x, format) === exports.format(y, format);
+}

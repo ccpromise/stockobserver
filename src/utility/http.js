@@ -35,6 +35,7 @@ exports.request = function (opt) {
         //if using fiddler, the request to fiddler must be http
         //its final protocal is specified in "path"
         var req = (useHttps && !config.isFiddler ? https : http).request(requestObj, (res) => {
+            // TODO: care about res.statusCode, not directly return the content;
             var data = [];
             res.on('data', (chunk) => { data.push(chunk); });
             res.on('end', () => { resolve(Buffer.concat(data)); });
