@@ -1,22 +1,10 @@
-var fs = require('fs');
-var tmp = require('tmp');
 
-function createTmpFile(opt) {
-    var extend = '.txt';
-    var discardDescriptor = true;
-    if(opt !== undefined && opt !== null) {
-        extend = opt.extend || extend;
-        discardDescriptor = opt.discardDescriptor || discardDescriptor;
-    }
-    return new Promise((resolve, reject) => {
-        tmp.file({ discardDescriptor: discardDescriptor,  keep: true, postfix: extend},(err, path, fd, callback) => {
-            if(err) reject(err);
-            else resolve([path, callback]);
-        })
-    })
-}
+const fs = require('fs');
 
-function writeFile(path, data) {
+/**
+ * async write data to file
+ */
+exports.writeFile = function (path, data) {
     return new Promise((resolve, reject) => {
         fs.writeFile(path, data, (err) => {
             if(err) reject(err);
@@ -25,26 +13,25 @@ function writeFile(path, data) {
     })
 }
 
-function writeToCSV(path, data) {
-    // data: array of object, each object has the same keys
-    var content = "";
-    var len = data.length;
-    if(len != 0) {
-        var keys = Object.keys(data[0]);
-        content = keys.join("\",\"");
-        content = "\"" + content + "\"\n";
-        data.forEach((obj) => {
-            var arr = [];
-            keys.forEach((key) => {
-                arr.push(obj[key]);
-            });
-            content += "\""+arr.join("\",\"")+"\"\n";
+/**
+ * save objArr to csv file. the first line is keys.
+ * objArr: array of obj of the same type
+ */
+exports.writeToCSV = function (path, objArr) {
+    var content = '';
+    if(objArr.length != 0) {
+        content = '"' + Object.keys(objArr[0]).join('","') + '"\n';
+        objArr.forEach((obj) => {
+            content += '"' + Object.values(obj).join('","') +  + '"\n';
         });
     }
-    return writeFile(path, content);
+    return exports.writeFile(path, content);
 }
 
-function readFile(path) {
+/**
+ * async read file from a path.
+ */
+exports.readFile = function (path) {
     return new Promise((resolve, reject) => {
         fs.readFile(path, (err, data) => {
             if(err) reject(err);
@@ -53,7 +40,10 @@ function readFile(path) {
     })
 }
 
-function readDirectory(dir) {
+/**
+ * async return name of files in a directory
+ */
+exports.readDirectory = function (dir) {
     return new Promise((resolve, reject) => {
         fs.readdir(dir, (err, r) => {
             if(err) reject(err);
@@ -62,7 +52,10 @@ function readDirectory(dir) {
     })
 }
 
-function stat(file) {
+/**
+ * async return the status of a file
+ */
+exports.stat = function (file) {
     return new Promise((resolve, reject) =>{
         fs.stat(file, (err, stats) => {
             if(err) reject(err);
@@ -70,10 +63,3 @@ function stat(file) {
         })
     })
 }
-
-exports.writeToCSV = writeToCSV;
-exports.writeFile = writeFile;
-exports.readFile = readFile;
-exports.createTmpFile = createTmpFile;
-exports.readDirectory = readDirectory;
-exports.stat = stat;

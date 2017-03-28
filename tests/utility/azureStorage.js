@@ -1,6 +1,12 @@
 
-var azure = require('../../src/utility/azureStorage');
+var utility = require('../../src/utility');
+var usr = require('../../src/config').azureUsr;
+var azure = utility.azureStorage(usr);
 
+azure.deleteBlob('stockdata', ['allstocks.txt', '.DS_Store']).then(() => {
+    return azure.getBlobList('stockdata');
+}).then((r) => console.log(r.length));
+//console.log(utility.azureStorage({}));
 
 /*
 blobService.listBlobsSegmented('stockdata', null, function(err, result, response) {
@@ -23,7 +29,7 @@ blobService.listBlobsSegmented('stockdata', null, function(err, result, response
         else console.log(result);
     })
 })*/
-
+/*
 azure.deleteContainer('stockdata').then((r) => {
     console.log(r);
-})
+})*/

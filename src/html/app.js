@@ -18,8 +18,11 @@ var getAllSimTrade = function(callback) {
     req.send('null');
 }
 
+Vue.filter('formatTs', (dateTs) => {
+    return new Date(dateTs * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+});
 
-window.app = new Vue({
+new Vue({
     el: '#app',
     data: {
         searchItem: '', // search trade items by secID
@@ -29,33 +32,36 @@ window.app = new Vue({
         pagination: {
             range: 5, // number of pages shown in navigation
             itemPerPage: 10,
-            totalPage: 0,
             currentPage: 0,
             filterPages: [] // the pages shown in navigation
         }
     },
+    computed: {
+        totalPage: function () {
+            return Math.ceil(this.filteredItems.length / this.pagination.itemPerPage)
+        }
+    },
     methods: {
-        buildPagination() {
+        buildPagination: function () {
             var totalItem = this.filteredItems.length;
-            this.pagination.totalPage = Math.ceil(totalItem / this.pagination.itemPerPage);
         },
-        selectPage(page) {
+        selectPage: function (page) {
             this.pagination.currentPage = page;
 
             var start = 0;
             var end = 0;
             var margin = Math.floor(this.pagination.range / 2);
-            if(this.pagination.totalPage < this.pagination.range) {
+            if(this.totalPage < this.pagination.range) {
                 start = 1;
-                end = this.pagination.totalPage;
+                end = this.totalPage;
             }
             else if(page <= margin) {
                 start = 1;
                 end = this.pagination.range;
             }
-            else if(page >= this.pagination.totalPage - margin) {
-                start = this.pagination.totalPage - this.pagination.range + 1;
-                end = this.pagination.totalPage;
+            else if(page >= this.totalPage - margin) {
+                start = this.totalPage - this.pagination.range + 1;
+                end = this.totalPage;
             }
             else {
                 start = page - margin;
@@ -70,35 +76,32 @@ window.app = new Vue({
                 this.paginatedItems.push(this.filteredItems[i]);
             }
         },
-        formatTs(dateTs) {
-            return new Date(dateTs * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-        },
-        loadData(page) {
+        loadData: function (page) {
             getAllSimTrade((data) => {
                 this.items = data;
                 this.filteredItems = this.items.filter((item) => {
                     return item.secID.indexOf(this.searchItem) >= 0;
-                })
+                });
                 this.buildPagination();
                 this.selectPage(page || 1);
             })
         },
-        search() {
+        search: function () {
             this.filteredItems = this.items.filter((item) => {
                 return item.secID.indexOf(this.searchItem) >= 0;
             });
             this.buildPagination();
             this.selectPage(1);
         },
-        clearSearch() {
+        clearSearch: function () {
             this.searchItem = '';
             search();
         },
-        update() {
+        update: function () {
             this.loadData(this.currentPage);
         }
     },
-    mounted() {
+    mounted: function () {
         this.loadData();
     }
 });

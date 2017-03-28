@@ -1,7 +1,8 @@
 
 var getSecID = require('../../../datasrc/wmcloud').getSecID;
-var container = require('../../../config').stockmetaContainer;
-var azure = require('../../../utility').azureStorage
+var config = require('../../../config');
+var container = config.stockmetaContainer;
+var azure = require('../../../utility').azureStorage(config.azureUsr);
 
 exports.run = function() {
     return getSecID().then((list) => {

@@ -10,6 +10,7 @@ exports.fiddlerPort = 8888;
 exports.bollingerK = 2;
 
 // stockdata
+exports.useLocalData = process.argv.indexOf('-l') > -1;
 exports.stockDataDir = '/Users/Chenchen/Desktop/GitExplore/stockobserver/data';
 exports.stockListUrl = {
     'host': 'stockanalysis.blob.core.chinacloudapi.cn',
@@ -36,9 +37,11 @@ exports.timeoutInterval = 5000;
 exports.maxProcessTs = 30000;
 
 // azure-storage
-exports.azureAccount = 'liuccplay';
-exports.azurePwd = 'KAl0k8DrhZen3m+d+LDTY0s9DFqdDadI7sJgP2/brJ7vHHiyzgfJb7Qml3pyf3T1W9coq0bym2oZprEQYd4k5A==';
-exports.azureHost = 'liuccplay.blob.core.chinacloudapi.cn';
+exports.azureUsr = {
+    account: 'liuccplay',
+    pwd: 'KAl0k8DrhZen3m+d+LDTY0s9DFqdDadI7sJgP2/brJ7vHHiyzgfJb7Qml3pyf3T1W9coq0bym2oZprEQYd4k5A==',
+    host: 'liuccplay.blob.core.chinacloudapi.cn'
+}
 exports.stockdataContainer = 'stockdata';
 exports.defaultContainer = 'stockdata';
 exports.stockmetaContainer = 'stockmeta';

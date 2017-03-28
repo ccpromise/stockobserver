@@ -1,4 +1,10 @@
-var forEach = function(list, iterator) {
+
+/**
+ * async version of Array.forEach()
+ * apply iterator to each promise in list in sequence.
+ */
+
+exports.forEach = function(list, iterator) {
     return list.reduce((pre, cur) => {
         return pre.then(() => {
             return iterator(cur);
@@ -6,7 +12,11 @@ var forEach = function(list, iterator) {
     }, Promise.resolve());
 }
 
-var whileAsync = function(condition, action) {
+/**
+ * async while.
+ * call action, which return a promise, in sequence while condition is true.
+ */
+exports.while = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
         return action().then(iter);
@@ -14,19 +24,25 @@ var whileAsync = function(condition, action) {
     return iter();
 }
 
-var parallel = function(hasNext, next, N) {
+exports.doWhile = function(condition, action) {
+    var iter = function() {
+        if(!condition()) return Promise.resolve();
+        return action().then(iter);
+    }
+    return action().then(() => { return iter(); });
+}
+
+/**
+ * execute at most N promises in parallel.
+ */
+exports.parallel = function(hasNext, next, N) {
     var iter = function() {
         if(!hasNext()) return Promise.resolve();
         return next().then(iter);
     }
     var handler = [];
-    var i = 0;
-    while(i < N && hasNext()) {
-        handler[i++] = iter();
+    while(handler.length < N && hasNext()) {
+        handler.push(iter());
     }
     return Promise.all(handler);
 }
-
-exports.forEach = forEach;
-exports.while = whileAsync;
-exports.parallel = parallel;

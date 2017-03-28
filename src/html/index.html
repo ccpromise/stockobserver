@@ -11,10 +11,10 @@
                 <button type="button" v-on:click="clearSearch()" v-bind:disabled="searchItem === ''">Clear</button>
             </nav>
             <div class="pagination">
-                <button type="button" v-on:click="selectPage(1)" v-bind:disabled="pagination.currentPage === 1 || pagination.totalPage === 0">First</button>
+                <button type="button" v-on:click="selectPage(1)" v-bind:disabled="pagination.currentPage === 1 || totalPage === 0">First</button>
                 <ul>
                     <li>
-                        <button type="button" v-on:click="selectPage(pagination.currentPage-1)" v-bind:disabled="pagination.currentPage === 1 || pagination.totalPage === 0">Previous</button>
+                        <button type="button" v-on:click="selectPage(pagination.currentPage-1)" v-bind:disabled="pagination.currentPage === 1 || totalPage === 0">Previous</button>
                     </li>
                     <li class="is-space"></li>
                     <li v-for="page in pagination.filterPages">
@@ -22,10 +22,10 @@
                     </li>
                     <li class="is-space"></li>
                     <li>
-                        <button type="button" v-on:click="selectPage(pagination.currentPage+1)" v-bind:disabled="pagination.currentPage === pagination.totalPage || pagination.totalPage === 0">Next</button>
+                        <button type="button" v-on:click="selectPage(pagination.currentPage+1)" v-bind:disabled="pagination.currentPage === totalPage || totalPage === 0">Next</button>
                     </li>
                 </ul>
-                <button type="button" v-on:click="selectPage(pagination.totalPage)" v-bind:disabled="pagination.currentPage === pagination.totalPage || pagination.totalPage === 0">Last</button>
+                <button type="button" v-on:click="selectPage(totalPage)" v-bind:disabled="pagination.currentPage === totalPage || totalPage === 0">Last</button>
             </div>
             <div class="paginatedItems">
                 <table>
@@ -41,9 +41,9 @@
                     <tr v-for="item in paginatedItems">
                         <td>{{item.secID}}</td>
                         <td>{{item.closed}}</td>
-                        <td>{{formatTs(item.sdts)}}</td>
+                        <td>{{sdts | formatTs}}</td>
                         <td>{{item.sp}}</td>
-                        <td>{{formatTs(item.edts)}}</td>
+                        <td>{{edts | formatTs}}</td>
                         <td>{{item.ep}}</td>
                         <td>{{item.tradeplanId}}</td>
                     </tr>

@@ -1,8 +1,12 @@
-var mongodb = require('mongodb');
-var MongoClient = mongodb.MongoClient;
-var ObjectId = mongodb.ObjectId;
-var validate = require('./validate');
 
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
+const ObjectId = mongodb.ObjectId;
+const validate = require('./validate');
+
+/**
+ * create a Database
+ */
 function Database (url) {
     this.url = url;
     this.dbPromise = null;
@@ -21,6 +25,9 @@ Database.prototype._getDb = function() {
     return this.dbPromise;
 }
 
+/**
+ crete a collection if not exist.
+ */
 Database.prototype.getCollection = function (name, fields) {
     if(name in this.collectionMap) return this.collectionMap[name];
     var collection = new Collection(this, name, fields);
@@ -28,6 +35,9 @@ Database.prototype.getCollection = function (name, fields) {
     return collection;
 };
 
+/**
+ * create a collection in db.
+ */
 function Collection(db, name, defaultFields) {
     this.db = db;
     this.colPromise = null;
@@ -48,33 +58,6 @@ Collection.prototype._getCol = function() {
     }
     return this.colPromise;
 }
-
-// opt: {
-// 'w': number | string,
-// 'wtimeout': number,
-// 'j': boolean,
-// 'unique': boolean,
-// 'sparse': boolean,
-// 'background': boolean,
-// 'dropDups': boolean,
-// 'min': number,
-// 'max': number,
-// 'v': number,
-// 'expireAfterSeconds': number,
-// 'name': string,
-// 'partialFilterExpression': object
-// 'collation': object
-// }
-Collection.prototype.createIndex = function(index, opt) {
-    return this._getCol().then((col) => {
-        return new Promise((resolve, reject) => {
-            col.createIndex(index, opt, (err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            });
-        });
-    });
-};
 
 // opt: {
 // 'w': number | string,
@@ -125,12 +108,13 @@ Collection.prototype.upsert = function(filter, doc, opt) {
 // doc: [
 // {'filter': , 'update': }
 // ]
-Collection.prototype.updateMany = function(docs) {
+Collection.prototype.updateMany = function(docs, useUpsert) {
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             var bulk = col.initializeUnorderedBulkOp();
             docs.forEach(doc => {
-                bulk.find(doc.filter).update(doc.update);
+                if(useUpsert) bulk.find(doc.filter).upsert().update(doc.update);
+                else bulk.find(doc.filter).update(doc.update);
             });
             bulk.execute((err, r) => {
                 if(err) reject(err);
@@ -144,18 +128,7 @@ Collection.prototype.updateMany = function(docs) {
 // {'filter': , 'update': }
 // ]
 Collection.prototype.upsertMany = function(docs) {
-    return this._getCol().then((col) => {
-        return new Promise((resolve, reject) => {
-            var bulk = col.initializeUnorderedBulkOp();
-            docs.forEach(doc => {
-                bulk.find(doc.filter).upsert().update(doc.update);
-            });
-            bulk.execute((err, r) => {
-                if(err) reject(err);
-                else resolve(r);
-            });
-        });
-    })
+    return this.updateMany(docs, true);
 }
 
 // opt: {
@@ -240,7 +213,7 @@ Collection.prototype.findAndModify = function(filter, field, opt) {
     opt = opt || {};
     if(opt.new !== false) opt.new = true;
     var sort = [];
-    if(validate.isObj(opt) && opt !== null && 'sort' in opt) {
+    if(opt !== undefined && opt !== null && 'sort' in opt) {
         sort = opt.sort;
         delete opt.sort;
     }

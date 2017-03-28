@@ -1,11 +1,12 @@
 
 var utility = require('../../../utility');
+var config = require('../../../config');
 var time = utility.time;
-var azure = utility.azureStorage;
+var azure = utility.azureStorage(config.azureUsr);
 var validate = utility.validate;
 var object = utility.object;
 var getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
-var container = require('../../../config').stockdataContainer;
+var container = config.stockdataContainer;
 
 exports.run = function(secID) {
     secID = secID.toLowerCase();
