@@ -7,7 +7,6 @@ var simulateCol = simulate.simulateCol;
 var lastSimDateCol = simulate.lastSimDateCol;
 var tradePlan = require('../../strategy/tradeplan');
 
-
 Promise.all([trade.remove().then(() => { return trade.insertMany(Object.values(tradePlan)); }), taskCol.remove(), syncdateCol.remove(), simulateCol.remove(), lastSimDateCol.remove()]).then(() => {
     console.log('done');
 });

@@ -10,7 +10,6 @@ var run = function() {
     var i = 0;
     var loop = function() {
         setTimeout(() => {
-            console.log('waiting task...');
             httpReq('/taskManager', null, 'get').then((task) => {
                 task = JSON.parse(task.toString());
                 if(task === null) i = (i === (len - 1) ? i : (i + 1));
@@ -22,7 +21,6 @@ var run = function() {
 };
 
 var execute = function(task) {
-    console.log('start to execute task..')
     var taskType = task.task.type;
     var args = task.task.pack;
     var invalidArg = {
@@ -38,7 +36,6 @@ var execute = function(task) {
         var handler = taskLib[taskType];
         if(handler.checkArgs(args)) {
             return handler.run(args).then(() => {
-                console.log('task succeed');
                 return {
                     _id: task._id,
                     status: taskStatus.success,

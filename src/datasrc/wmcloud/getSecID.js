@@ -16,6 +16,6 @@ module.exports = function() {
     return http.request(opt).then((content) => {
         var data = JSON.parse(content.toString());
         if(data.retCode !== 1) throw new Error(data.retMsg);
-        return data.data.filter((stock) => stock.listStatusCD === 'L' && stock.exchangeCD === 'XSHE').map((stock) => stock.secID);
+        return data.data.filter((stock) => stock.listStatusCD === 'L' && (stock.exchangeCD === 'XSHG' ||stock.exchangeCD === 'XSHE')).map((stock) => stock.secID);
     });
 }

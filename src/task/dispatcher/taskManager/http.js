@@ -29,7 +29,6 @@ function get(res) {
 
 // accept result from consumer, check it and update collection.
 function report(result, res) {
-    console.log('task collection received result report: ', result);
     taskCol.checkResultValidity(result).then((r) => {
         var _id = new ObjectId(result._id);
         if(r) {

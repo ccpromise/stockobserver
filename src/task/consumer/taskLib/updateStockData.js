@@ -11,8 +11,15 @@ var container = config.stockdataContainer;
 exports.run = function(secID) {
     secID = secID.toLowerCase();
     return azure.createContainerIfNotExists(container).then(() => {
-        return azure.getBlobToText(container, secID + '.json').then((stockData) => {
-            stockData = JSON.parse(stockData);
+        return azure.getBlobToText(container, secID + '.json').then((s) => {
+            try {
+                stockData = JSON.parse(s);
+            }
+            catch (err){
+                console.log('JSON parse error 1');
+                console.log(s);
+                throw err;
+            }
             var nextDay = time.nextDay(stockData.maxDay);
             return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
                 // {data:, minDay:, maxDay:, preClosePrice:}
@@ -21,7 +28,7 @@ exports.run = function(secID) {
                 for(date in newData.data) {
                     var adjData = object.clone(newData.data[date]);
                     var price = ['o', 'e', 'h', 'l'];
-                    prices.forEach((key) => {
+                    price.forEach((key) => {
                         adjData[key] *= adjFactor;
                     });
                     stockData.data[date] = adjData;
@@ -37,9 +44,7 @@ exports.run = function(secID) {
             }
             throw err;
         }).then((data) => {
-            return azure.createBlobFromText(container, secID + '.json', JSON.stringify(data)).then((r) => {
-                console.log('write to blob done.');
-            });
+            return azure.createBlobFromText(container, secID + '.json', JSON.stringify(data));
         });
     })
 }
