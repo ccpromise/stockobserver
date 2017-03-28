@@ -36,6 +36,7 @@ exports.run = function(args) {
             var maxTs = dpIn.maxTs;
             var startTs = arr[3] === null ? minTs : dpIn.forwardDateTs(arr[3], 1);
 
+            if(startTs === -1) return;
             return postNewSim(startTs, dpIn, endData, tradeplanId, secID).then(() => {
                 return httpReq('/simulate', { filter: {
                     'tradeplanId': tradeplanId,
@@ -58,8 +59,6 @@ function postNewSim(startTs, dpIn, endData, tradeplanId, secID) {
     var maxTs = dpIn.maxTs;
     var newSim = [];
     while(ts <= maxTs && ts !== -1) {
-        console.log(ts);
-        console.log(dpIn.get(ts));
         if(dpIn.get(ts)) {
             console.log('should buy at ', ts);
             var price = endData.get(ts);
