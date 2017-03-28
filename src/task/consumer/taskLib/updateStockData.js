@@ -11,15 +11,8 @@ var container = config.stockdataContainer;
 exports.run = function(secID) {
     secID = secID.toLowerCase();
     return azure.createContainerIfNotExists(container).then(() => {
-        return azure.getBlobToText(container, secID + '.json').then((s) => {
-            try {
-                stockData = JSON.parse(s);
-            }
-            catch (err){
-                console.log('JSON parse error 1');
-                console.log(s);
-                throw err;
-            }
+        return azure.getBlobToText(container, secID + '.json').then((stockData) => {
+            stockData = JSON.parse(stockData);
             var nextDay = time.nextDay(stockData.maxDay);
             return getHistoryData(secID, time.format(nextDay, 'YYYYMMDD')).then((newData) => {
                 // {data:, minDay:, maxDay:, preClosePrice:}

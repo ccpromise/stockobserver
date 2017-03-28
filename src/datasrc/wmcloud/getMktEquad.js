@@ -17,14 +17,7 @@ exports.getMktEquad = function(query) {
             option.query = 'field='+query.field+'&beginDate='+query.beginDate+'&endDate='+query.endDate+'&secID='+query.secID+'&ticker='+query.ticker+'&tradeDate='+query.tradeDate;
             //wmcloud is an https api
             utility.http.request(option).then((data) => {
-                try {
-                    data = JSON.parse(data.toString());
-                }
-                catch (err) {
-                    console.log('JSON parse error 2');
-                    reject(err);
-                    return;
-                }
+                data = JSON.parse(data.toString());
                 resolve(data);
             }).catch(reject);
         }

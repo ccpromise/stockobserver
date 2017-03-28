@@ -58,6 +58,8 @@ function postNewSim(startTs, dpIn, endData, tradeplanId, secID) {
     var maxTs = dpIn.maxTs;
     var newSim = [];
     while(ts <= maxTs && ts !== -1) {
+        console.log(ts);
+        console.log(dpIn.get(ts));
         if(dpIn.get(ts)) {
             console.log('should buy at ', ts);
             var price = endData.get(ts);

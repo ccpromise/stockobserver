@@ -6,13 +6,20 @@ var args = {
     'tradeplanId': 'MA1060',
     'secID': '000002.xshe'
 }
+var async = require('../../src/utility').async;
 
 getSecID().then((list) => {
     console.log(list);
-    return Promise.all(list.map((secID) => {
+    var i = 0;
+    var N = list.length;
+
+    async.while(() => {
+        return i < N;
+    }, () => {
+        var secID = list[i++];
         return simulate.run({
             'tradeplanId': 'MA1060',
             'secID': secID.toLowerCase()
-        }).then(() => console.log(secID, ' done!'));
-    }));
+        }).then(() => console.log(secID, ' done!')).catch(console.log);
+    });
 }).then(() => console.log('done!')).catch(err => console.log(err));
