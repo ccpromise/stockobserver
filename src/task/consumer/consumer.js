@@ -10,23 +10,23 @@ var run = function() {
     var i = 0;
     var loop = function() {
         setTimeout(() => {
-            httpReq('/taskManager', null, 'get').then((task) => {
-                task = JSON.parse(task.toString());
-                if(task === null) i = (i === (len - 1) ? i : (i + 1));
-                else return execute(task).then(() => i = 0);
+            httpReq('/taskManager', null, 'get').then((doc) => {
+                doc = JSON.parse(doc.toString());
+                if(doc === null) i = (i === (len - 1) ? i : (i + 1));
+                else return execute(doc).then(() => i = 0);
             }).catch(err => console.log(err)).then(loop);
         }, waitTime[i]);
     }
     loop();
 };
 
-var execute = function(task) {
-    var taskType = task.task.type;
-    var args = task.task.pack;
+var execute = function(doc) {
+    var taskType = doc.task.type;
+    var args = doc.task.pack;
     var invalidArg = {
-        _id: task._id,
+        _id: doc._id,
         status: taskStatus.fail,
-        lastProcessedTs: task.lastProcessedTs,
+        lastProcessedTs: doc.lastProcessedTs,
         log: {
             'desc': 'task fail',
             'time': time.format(time.now()),
@@ -37,9 +37,9 @@ var execute = function(task) {
         if(handler.checkArgs(args)) {
             return handler.run(args).then(() => {
                 return {
-                    _id: task._id,
+                    _id: doc._id,
                     status: taskStatus.success,
-                    lastProcessedTs: task.lastProcessedTs,
+                    lastProcessedTs: doc.lastProcessedTs,
                     log: {
                         'desc': 'task succeed',
                         'time': time.format(time.now()),
@@ -49,9 +49,9 @@ var execute = function(task) {
             }, (err) => {
                 console.log('task fail');
                 return {
-                    _id: task._id,
+                    _id: doc._id,
                     status: taskStatus.fail,
-                    lastProcessedTs: task.lastProcessedTs,
+                    lastProcessedTs: doc.lastProcessedTs,
                     log: {
                         'desc': 'task fail',
                         'time': time.format(time.now()),
