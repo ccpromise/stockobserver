@@ -1,7 +1,4 @@
 
-var DataPvd = require('../dataPvd/pvdClass/basicDataPvd/DataPvd');
-var Stock = require('../stockdata').Stock;
-
 exports.isStr = function (val) {
     return typeof val === 'string';
 }
@@ -19,35 +16,23 @@ exports.isBoolean = function (val) {
 }
 
 exports.isInt = function(val) {
-    return typeof val === 'number' && val === Math.floor(val);
+    return exports.isNum(val) && val === Math.floor(val);
 }
 
 exports.isPosNum = function(val) {
-    return typeof val === 'number' && val > 0;
+    return exports.isNum(val) && val > 0;
 }
 
 exports.isPosInt = function(val) {
-    return typeof val === 'number' && val > 0 && val === Math.floor(val);
+    return exports.isInt(val) && val > 0;
 }
 
 exports.isNonNegNum = function(val) {
-    return typeof val === 'number' && val >= 0;
+    return exports.isNum(val) && val >= 0;
 }
 
 exports.isNonNegInt = function(val) {
-    return typeof val === 'number' && val >= 0 && val === Math.floor(val);
-}
-
-exports.isBool = function (val) {
-    return typeof val === 'boolean';
-};
-
-exports.isDataPvd = function (val) {
-    return val instanceof DataPvd;
-};
-
-exports.isStock = function(val) {
-    return val['data'] && val['minTs'] && val['maxTs'] && val['id'];
+    return exports.isInt(val) && val >= 0;
 }
 
 exports.isAny = function(val) {
@@ -55,7 +40,7 @@ exports.isAny = function(val) {
 }
 
 exports.isEmptyArr = function(arr) {
-    return arr instanceof Array && arr.length === 0;
+    return exports.isArr(arr) && arr.length === 0;
 }
 
 exports.isArr = function(val) {

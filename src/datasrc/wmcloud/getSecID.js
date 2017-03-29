@@ -1,5 +1,5 @@
 
-var http = require('../../utility').http;
+var request = require('../../utility').request;
 var access_token = require('../../config').access_token;
 
 var opt = {
@@ -13,7 +13,7 @@ var opt = {
 }
 
 module.exports = function() {
-    return http.request(opt).then((content) => {
+    return request(opt).then((content) => {
         var data = JSON.parse(content.toString());
         if(data.retCode !== 1) throw new Error(data.retMsg);
         return data.data.filter((stock) => stock.listStatusCD === 'L' && (stock.exchangeCD === 'XSHG' ||stock.exchangeCD === 'XSHE')).map((stock) => stock.secID);

@@ -1,6 +1,6 @@
 
 var config = require('../../config');
-var http = require('../../utility').http;
+var request = require('../../utility').request;
 
 module.exports = function(path, data, verb) {
     var opt = {
@@ -14,5 +14,5 @@ module.exports = function(path, data, verb) {
             verb: verb
         }
     }
-    return http.request(opt);
+    return request(opt);
 }

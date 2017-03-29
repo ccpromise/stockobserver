@@ -19,15 +19,18 @@ exports.forEach = function(list, iterator) {
 exports.while = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
-        return action().then(iter);
+        return action().then(() => { return iter(); });
     }
     return iter();
 }
 
+/**
+ * async do while.
+ */
 exports.doWhile = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
-        return action().then(iter);
+        return action().then(() => { return iter; });
     }
     return action().then(() => { return iter(); });
 }
@@ -38,7 +41,7 @@ exports.doWhile = function(condition, action) {
 exports.parallel = function(hasNext, next, N) {
     var iter = function() {
         if(!hasNext()) return Promise.resolve();
-        return next().then(iter);
+        return next().then(() => { return iter(); });
     }
     var handler = [];
     while(handler.length < N && hasNext()) {

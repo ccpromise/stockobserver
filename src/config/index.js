@@ -45,11 +45,3 @@ exports.azureUsr = {
 exports.stockdataContainer = 'stockdata';
 exports.defaultContainer = 'stockdata';
 exports.stockmetaContainer = 'stockmeta';
-
-// utility-refReplace
-exports.defaultRefenceTemplate = {
-    'regex': new RegExp(/{{\w+}}/),
-    'getRef': function(s) {
-        return s.substring(2, s.length-2);
-    }
-}

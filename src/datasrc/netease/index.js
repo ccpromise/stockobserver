@@ -1,4 +1,4 @@
-var http = require('../../utility').http;
+var request = require('../../utility').request;
 var fields = ['CODE', 'OPEN', 'PRICE', 'HIGH', 'LOW', 'HS', 'VOLUME', 'YESTCLOSE'];
 var property = ['start', 'end', 'high', 'low', 'exchange', 'volumn', 'preclose']
 var count = 4000;
@@ -10,7 +10,7 @@ var opt = {
 
 exports.getStockData = function () {
     return new Promise((resolve, reject) => {
-        http.request(opt).then((obj) => {
+        request(opt).then((obj) => {
             var res = JSON.parse(obj.toString());
             var stock = res.list.reduce((pre, cur) => {
                 pre[cur['CODE']] = {};

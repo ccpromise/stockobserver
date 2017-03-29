@@ -7,8 +7,9 @@ var args = {
     'secID': '000002.xshe'
 }
 var async = require('../../src/utility').async;
-
+console.log('1');
 getSecID().then((list) => {
+    console.log('2');
     console.log(list);
     var i = 0;
     var N = list.length;

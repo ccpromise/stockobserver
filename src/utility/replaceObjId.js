@@ -1,7 +1,30 @@
 
-var validate = require('./validate');
-var ObjectId = require('mongodb').ObjectId;
-var convertObjId = function(id) {
+const validate = require('./validate');
+const ObjectId = require('mongodb').ObjectId;
+
+/**
+ * replace ObjectId-like string in inputument
+ */
+module.exports = function(input) {
+    if(validate.isStr(input)) return convertObjId(input);
+    if(validate.isNum(input) || validate.isBoolean(input)) return input;
+    if(validate.isArr(input)) {
+        return input.map((ele) => module.exports(ele));
+    }
+    if(validate.isObj(input)) {
+        var inputCpy = Object.create(null);
+        Object.keys(input).forEach((key) =>{
+            inputCpy[key] = module.exports(input[key]);
+        })
+        return inputCpy;
+    }
+    return input;
+}
+
+/**
+ return ObjectId instance if successfully transferred, otherwise return the original string
+ */
+function convertObjId(id) {
     try {
         var objId = new ObjectId(id);
     }
@@ -10,21 +33,3 @@ var convertObjId = function(id) {
     }
     return objId;
 }
-
-var replaceObjId = function(arg) {
-    if(validate.isStr(arg)) return convertObjId(arg);
-    if(validate.isNum(arg) || validate.isBoolean(arg)) return arg;
-    if(validate.isArr(arg)) {
-        return arg.map((ele) => replaceObjId(ele));
-    }
-    if(validate.isObj(arg)) {
-        var argCpy = {};
-        Object.keys(arg).forEach((key) =>{
-            argCpy[key] = replaceObjId(arg[key]);
-        })
-        return argCpy;
-    }
-    return arg;
-}
-
-module.exports = replaceObjId;

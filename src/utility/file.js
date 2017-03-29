@@ -41,7 +41,7 @@ exports.readFile = function (path) {
 }
 
 /**
- * async return name of files in a directory
+ * async return list of file names in a directory
  */
 exports.readDirectory = function (dir) {
     return new Promise((resolve, reject) => {

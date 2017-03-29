@@ -1,14 +1,29 @@
 
-var validate = require('./validate');
-var config = require('../config');
+const validate = require('./validate');
+const defaultRefenceTemplate = {
+    'regex': /{{\w+}}/,
+    'getRef': function(s) {
+        return s.slice(2, -2);
+    }
+}
 
-// refTemplate: {
-// regex: new RegExp(/{{\w+}}/);
-// getRef : function(reference). {{key1}} => key1
-//}
+/**
+ * replace reference in template using valueMap
+ * accept value type: number, string, boolean, array and object
+ * example ->
+ * template: {
+ * name: {{key1}}
+ * }
+ * valueMap: {
+ * key1: 'cc'
+ * }
+ * so return {
+ * name: 'cc'
+ * }
+ */
 module.exports = function(template, valueMap, refTemplate) {
-    refTemplate = refTemplate || config.defaultRefenceTemplate;
-    return findRefValue(template, valueMap, {}, {}, refTemplate);
+    refTemplate = refTemplate || defaultRefenceTemplate;
+    return findRefValue(template, valueMap, Object.create(null), Object.create(null), refTemplate);
 }
 
 var findRefValue = function(value, valueMap, refValueMap, processingRef, refTemplate) {

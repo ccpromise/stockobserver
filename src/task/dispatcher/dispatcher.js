@@ -16,8 +16,8 @@ var syncdateCol = require('./updateStockData/db').syncdateCol;
 var taskCol = require('./taskManager/db').taskCol;
 
 var run = function() {
-    setProducer();
-    clearTimeout();
+    //setProducer();
+    //clearTimeout();
     createServer();
 }
 

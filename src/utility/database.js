@@ -10,7 +10,7 @@ const validate = require('./validate');
 function Database (url) {
     this.url = url;
     this.dbPromise = null;
-    this.collectionMap = {};
+    this.collectionMap = Object.create(null);
 };
 
 Database.prototype._getDb = function() {
@@ -87,7 +87,7 @@ Collection.prototype.insert = function(doc, opt) {
 // 'collation': object
 // }
 Collection.prototype.update = function(filter, doc, opt) {
-    opt = opt || {};
+    opt = opt || Object.create(null);
     opt.multi = opt.multi || true;
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
@@ -100,7 +100,7 @@ Collection.prototype.update = function(filter, doc, opt) {
 };
 
 Collection.prototype.upsert = function(filter, doc, opt) {
-    opt = opt || {};
+    opt = opt || Object.create(null);
     opt.upsert = true;
     return this.update(filter, doc, opt);
 }
@@ -187,7 +187,7 @@ Collection.prototype.find = function(filter, field) {
 // collation: object
 // }
 Collection.prototype.findOne = function(filter, field, opt) {
-    opt = opt || {};
+    opt = opt || Object.create(null);
     field = field || this.defaultFields;
     opt.fields = field;
     return this._getCol().then((col) => {
@@ -210,7 +210,7 @@ Collection.prototype.findOne = function(filter, field, opt) {
 // 'fields': object
 // }
 Collection.prototype.findAndModify = function(filter, field, opt) {
-    opt = opt || {};
+    opt = opt || Object.create(null);
     if(opt.new !== false) opt.new = true;
     var sort = [];
     if(opt !== undefined && opt !== null && 'sort' in opt) {
@@ -244,6 +244,17 @@ Collection.prototype.insertMany = function(docArr, opt) {
                 else resolve(r);
             });
         });
+    })
+}
+
+Collection.prototype.findPagination = function(filter, sort, pageNum, pageSize) {
+    return this._getCol().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize).toArray((err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            })
+        })
     })
 }
 

@@ -22,7 +22,7 @@ function get(res) {
         res.end(JSON.stringify(r));
     }, (err) => {
         res.writeHead(500, { 'content-type': 'application/json' });
-        res.end('null');
+        res.end();
         console.log('err when calling task.getReadyTask, err: ', err);
     });
 }

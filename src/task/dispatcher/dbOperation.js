@@ -25,7 +25,7 @@ module.exports = function(col, arg, verb, res) {
     }
     else {
         res.writeHead(400);
-        res.end('null');
+        res.end();
         return;
     }
     promise.then((r) => {
@@ -33,7 +33,7 @@ module.exports = function(col, arg, verb, res) {
         res.end(JSON.stringify(r));
     }).catch((err) => {
         res.writeHead(500);
-        res.end('null');
+        res.end();
         console.log(err);
     });
 }

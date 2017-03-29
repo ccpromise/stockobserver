@@ -1,47 +1,61 @@
 
-var utility = require('../utility');
-var file = utility.file;
-var object = utility.object;
-var http = utility.http;
-var async = utility.async;
-var config = require('../config');
-var path = require('path');
-var parallelN = 50;
+const utility = require('../utility');
+const file = utility.file;
+const request = utility.request;
+const async = utility.async;
+const path = require('path');
+const parallelN = 50;
+const maxRetry = 10;
 
-var host = 'stockanalysis.blob.core.chinacloudapi.cn';
-var stockDataContainer = 'newsysraw';
-var stockListPath = 'newsysstatic/allstocks.txt';
+const host = 'stockanalysis.blob.core.chinacloudapi.cn';
+const stockDataContainer = 'newsysraw';
+const stockListPath = 'newsysstatic/allstocks.txt';
 
-var downloadStockData = function(stockDir) {
-    return http.request({
+var getStockList = function() {
+    return request({
         host: host,
         path: stockListPath,
-        method: 'GET',
-        useHttps: true
     }).then((content) => {
-        var all = content.toString().split(';');
-        var i = 0;
-        var N = all.length;
-        var errStockList = [];
-        return file.readDirectory(stockDir).then((curList) => {
-            var curMap = {};
-            curList.forEach((file) => { curMap[file] = true; });
-            return async.parallel(() => {
-                return i < N;
-            }, () => {
-                var secID = all[i++];
-                var fileName = secID.toLowerCase() + '.json';
-                if(fileName in curMap) return Promise.resolve();
-                return http.request({
-                    host: host,
-                    path: stockDataContainer + '/' + fileName,
-                    method: 'GET',
-                    useHttps: true
-                }).then((data) => {
-                    return file.writeFile(path.join(stockDir, fileName), data.toString());
-                }).catch((err) => { errStockList.push(secID); });
-            }, parallelN).then(() => console.log(errStockList));
-        })
+        return content.toString().split(';');
+    })
+}
+
+var download = function(list, localPath) {
+    var i = 0;
+    var N = list.length;
+    var errList = [];
+
+    return async.parallel(() => {
+        return i < N;
+    }, () => {
+        var secID = list[i++];
+        var fileName = secID.toLowerCase() + '.json';
+        return request({
+            host: host,
+            path: stockDataContainer + '/' + fileName,
+        }).then((data) => {
+            return file.writeFile(path.join(localPath, fileName), data);
+        }).catch((err) => {
+            errList.push(secID);
+        });
+    }, parallelN).then(() => { return errList; });
+}
+
+var downloadStockData = function(localPath) {
+    return getStockList().then((list) => {
+        console.log(list);
+        var remainingList = list;
+        var retry = 0;
+
+        return async.doWhile(() => {
+            return remainingList.length !== 0 && retry < maxRetry;
+        }, () => {
+            return download(remainingList, localPath).then((errList) => {
+                remainingList = errList;
+                retry ++;
+                console.log('# of error downloads: ', errList.length);
+            })
+        }).then(() => console.log('final error list: ', remainingList));
     })
 }
 

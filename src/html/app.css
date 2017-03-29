@@ -18,6 +18,16 @@
     height: 40;
     padding: 5px;
     font-size: 100%;
+    outline: none;
+    border: none;
+}
+
+.pagination button:disabled {
+    color: #c0c0c0;
+}
+
+span.space {
+    padding-left: 20px;
 }
 
 .pagination {
@@ -52,11 +62,15 @@
     text-align: center;
 }
 
-.paginatedItems table th {
+.paginatedItems table th{
     background-color: grey;
-    color: white;
     padding: 5px;
     width: 150px;
+}
+
+.paginatedItems table button {
+    background-color: grey;
+    color: black;
 }
 
 .paginatedItems table th td {

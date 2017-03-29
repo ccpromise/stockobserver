@@ -5,14 +5,14 @@ const async = require('./async');
 
 module.exports = function(azureUsr) {
     var blobService = azure.createBlobService(azureUsr.account, azureUsr.pwd, azureUsr.host);
-    var exports = {};
+    var exports = Object.create(null);
 
     /**
      * create a container if not exists.
      * by default, set publicAccessLevel as 'blob'.
     */
     exports.createContainerIfNotExists = function(container, opt) {
-        opt = opt || {};
+        opt = opt || Object.create(null);
         opt.publicAccessLevel = opt.publicAccessLevel || 'blob';
         return new Promise((resolve, reject) => {
             blobService.createContainerIfNotExists(container, opt, (err, r) => {
@@ -133,5 +133,6 @@ module.exports = function(azureUsr) {
             }, 50);
         }
     }
+    
     return exports;
 };

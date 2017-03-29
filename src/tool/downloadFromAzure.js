@@ -1,36 +1,50 @@
 
-var config = require('../config');
-var utility = require('../utility');
-var file = utility.file;
-var object = utility.object;
-var http = utility.http;
-var async = utility.async;
-var azure = utility.azureStorage(config.azureUsr);
-var path = require('path');
-var parallelN = 50;
+const path = require('path');
+const azureUsr = require('../config').azureUsr;
+const utility = require('../utility');
+const async = utility.async;
+const azureStorage = utility.azureStorage;
+const parallelN = 50;
+const maxRetry = 10;
+
+/**
+ * download the blobs in list to local directory
+ */
+var download = function(azure, container, list, localPath) {
+    var N = list.length;
+    var i = 0;
+    var errList = [];
+
+    return async.parallel(() => {
+        return i < N;
+    }, () => {
+        var name = list[i++];
+        return azure.getBlobToFile(container, name, path.join(localPath, name)).then(() => {
+            console.log('succeed to download ', name);
+        }, (err) => {
+            errList.push(name);
+        });
+    }, parallelN).then(() => { return errList; });
+}
 
 /**
  * download blobs in a container to local directory
  */
 var downloadFromAzure = function(localPath, container) {
-    return azure.getBlobList(container).then((result) => {
-        var bolbnames = result.map(r => r.name);
-        var N = bolbnames.length;
-        var i = 0;
-        var errorList = [];
-
-        return async.parallel(() => {
-            return i < N;
+    var azure = azureStorage(azureUsr);
+    return azure.getBlobList(container).then((list) => {
+        var remainingList = list.map(r => r.name);
+        var retry = 0;
+        async.doWhile(() => {
+            return remainingList.length !== 0 && retry <= maxRetry;
         }, () => {
-            var name = bolbnames[i++];
-            return azure.getBlobToFile(container, name, path.join(localPath, name)).then(() => {
-                console.log('succeed to download ', name);
-            }, (err) => {
-                console.log('fail to download ', name, '. err: ', err);
-                errorList.push(name);
+            return download(azure, container, remainingList, localPath).then((errList) => {
+                remainingList = errList;
+                retry ++;
+                console.log('# of err downloads: ', errList.length, '\n try to download again!');
             });
-        }, parallelN).then(() => { return errorList; });
-    });
+        }).then(() => console.log('final err list: ', remainingList));
+    })
 }
 
-downloadFromAzure(process.argv[2], process.argv[3].catch((err) => { console.log(err); });
+downloadFromAzure(process.argv[2], process.argv[3]).catch((err) => { console.log(err); });

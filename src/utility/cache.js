@@ -1,6 +1,6 @@
 
 var cache = function () {
-    this._cache = {};
+    this._cache = Object.create(null);
 }
 
 cache.prototype.has = function(key) {

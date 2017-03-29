@@ -3,9 +3,10 @@ var utility = require('../../src/utility');
 var usr = require('../../src/config').azureUsr;
 var azure = utility.azureStorage(usr);
 
-//azure.getBlobToText('stockdata', '000650.xshe.json').then((r) => {
-//    console.log(r);
-//});
+azure.deleteContainer('tmp').then((r) => {
+    console.log('done');
+});
+azure.deleteBlob('stockdata', '.DS_Store').then((r) =>console.log(r));
 //azure.deleteContainer('stockdata').catch(console.log);
 //console.log(utility.azureStorage({}));
 
