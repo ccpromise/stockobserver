@@ -1,8 +1,12 @@
 
-var db = require('./db');
-var simulateCol = db.simulateCol;
-var lastSimDateCol = db.lastSimDateCol;
-var dbOperation = require('../dbOperation');
+/**
+ * simulate/http:
+ * database operation on simulateCol and simdateCol
+ */
+const db = require('./db');
+const simulateCol = db.simulateCol;
+const simdateCol = db.simdateCol;
+const dbOperation = require('../dbOperation');
 
 exports.simulate = function(arg, verb, res, req) {
     if(verb === 'getMul') {
@@ -14,8 +18,8 @@ exports.simulate = function(arg, verb, res, req) {
     else dbOperation(simulateCol, arg, verb, res);
 }
 
-exports.lastSimDate = function(arg, verb, res) {
-    dbOperation(lastSimDateCol, arg, verb, res);
+exports.simdate = function(arg, verb, res) {
+    dbOperation(simdateCol, arg, verb, res);
 }
 
 function getSimData(arg, req, res) {

@@ -1,5 +1,5 @@
 
-var Database = require('../../utility').database;
-var mongoUrl = require('../../config').mongoUrl;
+const Database = require('../../utility').database;
+const mongoUrl = require('../../config').mongoUrl;
 
 module.exports = new Database(mongoUrl);

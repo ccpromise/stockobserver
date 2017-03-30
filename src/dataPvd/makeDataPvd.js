@@ -1,29 +1,29 @@
 
-var DataPvd = require('./pvdClass');
+var DataPvds = require('./pvdClass');
 var utility = require('../utility');
 var validate = utility.validate;
 var existObj = {};
 var cachedPvdList = {'ma': true, 'std': true, 'boll': true, 'ema': true, 'macd': true}
 var pvdList = {
-    'ma': DataPvd.MADataPvd,
-    'std': DataPvd.StdDataPvd,
-    'boll': DataPvd.BollDataPvd,
-    'ema': DataPvd.EMADataPvd,
-    'macd': DataPvd.MACDDataPvd,
-    'add': DataPvd.AddDataPvd,
-    'div': DataPvd.DivDataPvd,
-    'mul': DataPvd.MulDataPvd,
-    'sub': DataPvd.SubDataPvd,
-    'const': DataPvd.ConstDataPvd,
-    'offset': DataPvd.OffsetDataPvd,
-    'end': DataPvd.EndDataPvd,
-    'and': DataPvd.AndDataPvd,
-    'gt': DataPvd.GtDataPvd
+    'ma': DataPvds.MADataPvd,
+    'std': DataPvds.StdDataPvd,
+    'boll': DataPvds.BollDataPvd,
+    'ema': DataPvds.EMADataPvd,
+    'macd': DataPvds.MACDDataPvd,
+    'add': DataPvds.AddDataPvd,
+    'div': DataPvds.DivDataPvd,
+    'mul': DataPvds.MulDataPvd,
+    'sub': DataPvds.SubDataPvd,
+    'const': DataPvds.ConstDataPvd,
+    'offset': DataPvds.OffsetDataPvd,
+    'end': DataPvds.EndDataPvd,
+    'and': DataPvds.AndDataPvd,
+    'gt': DataPvds.GtDataPvd
 }
 
 // ldp: {'type': , 'pack': {}}
 function checkldp(ldp) {
-    if(validate.isDataPvd(ldp)) return true;
+    if(ldp instanceof DataPvds.DataPvd) return true;
     if(!(validate.isObj(ldp) && ldp.type in pvdList)) {
         return false;
     }
@@ -32,14 +32,14 @@ function checkldp(ldp) {
 
 function pvdID(ldp) {
     if(!checkldp(ldp)) throw new Error('invalid literal dp');
-    if(validate.isDataPvd(ldp)) return ldp.id;
+    if(ldp instanceof DataPvds.DataPvd) return ldp.id;
     return pvdList[ldp.type].pvdID(ldp.pack);
 }
 
 var pvdPromiseMap = {};
 function makePvd(ldp) {
     return Promise.resolve().then(() => {
-        if(validate.isDataPvd(ldp)) return ldp;
+        if(ldp instanceof DataPvds.DataPvd) return ldp;
         if(!checkldp(ldp)) throw new Error('invalid literal dp');
         var id = pvdID(ldp);
         if(id in pvdPromiseMap) return pvdPromiseMap[id];

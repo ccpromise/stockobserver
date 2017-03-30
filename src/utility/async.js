@@ -19,7 +19,7 @@ exports.forEach = function(list, iterator) {
 exports.while = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
-        return action().then(() => { return iter(); });
+        return action().then(iter});
     }
     return iter();
 }
@@ -30,9 +30,9 @@ exports.while = function(condition, action) {
 exports.doWhile = function(condition, action) {
     var iter = function() {
         if(!condition()) return Promise.resolve();
-        return action().then(() => { return iter; });
+        return action().then(iter});
     }
-    return action().then(() => { return iter(); });
+    return action().then(iter});
 }
 
 /**
@@ -41,11 +41,45 @@ exports.doWhile = function(condition, action) {
 exports.parallel = function(hasNext, next, N) {
     var iter = function() {
         if(!hasNext()) return Promise.resolve();
-        return next().then(() => { return iter(); });
+        return next().then(iter});
     }
     var handler = [];
     while(handler.length < N && hasNext()) {
         handler.push(iter());
     }
     return Promise.all(handler);
+}
+
+/**
+ * async every
+ */
+exports.every = function(actions) {
+    var i = 0;
+    var N = actions.lenth;
+    var res = true;
+
+    return exports.while(() => {
+        return i < N && res;
+    }, () => {
+        return actions[i++]().then((r) =>{
+            res = r;
+        });
+    }).then(() =>  { return res; });
+}
+
+/**
+ * async some
+ */
+exports.some = function(actions) {
+    var i = 0;
+    var N = actions.lenth;
+    var res = false;
+
+    return exports.while(() => {
+        return i < N && !res;
+    }, () => {
+        return actions[i++]().then((r) =>{
+            res = r;
+        });
+    }).then(() =>  { return res; });
 }

@@ -1,143 +1,157 @@
 
-var http = require('http');
-var url = require('url');
-var config = require('../../config');
-var produceInterval = config.produceInterval;
-var timeoutInterval = config.timeoutInterval;
-var syncTime = config.stockSyncTime;
-var port = config.dispatcherPort;
-var host = config.dispatcherHost;
-var time = require('../../utility').time;
-var lastSyncDate = time.yesterday();
-var taskStatus = require('../../constants').taskStatus;
-var getSecID = require('../../datasrc/wmcloud').getSecID;
+const http = require('http');
+const url = require('url');
+const config = require('../../config');
+const utility = require('../../utility');
+const time = utility.time;
+const async = utility.async;
+const taskStatus = require('../../constants').taskStatus;
+const checkReadyCondition = require('./checkReadyCondition');
+//const ObjectId = require('mongodb').ObjectId;
 
-var syncdateCol = require('./updateStockData/db').syncdateCol;
-var taskCol = require('./taskManager/db').taskCol;
+/**
+ * task collection
+ */
+const taskCol = require('./taskManager/db').taskCol;
 
-var run = function() {
-    //setProducer();
-    //clearTimeout();
-    createServer();
+/**
+ * all http handlers.
+ */
+const simulateHttp = require('./simulate/http');
+const taskManagerHttp = require('./taskManager/http');
+const tradeHttp = require('./trade/http');
+const pathMap = {
+    '/simulate': simulateHttp.simulate,
+    '/simdate': simulateHttp.simdate,
+    '/task': taskManagerHttp.task,
+    '/producedate': taskManagerHttp.producedate,
+    '/trade': tradeHttp.tradeplan
 }
 
-var setProducer = function(task) {
-    var loop = function() {
-        setTimeout(() => {
-            var today = time.today();
-            var produceTime = time.today(syncTime);
-            if(time.isAfter(time.now(), produceTime) && time.isAfter(today, lastSyncDate)) {
-                console.log('start to produce task...');
-                syncdateCol.find({}).then((list) => {
-                    var curStock = {};
-                    var stockArr = list.filter((stock) => {
-                        curStock[stock.secID] = true;
-                        return time.isAfter(today, stock.syncdate);
-                    });
-                    var idArr = stockArr.map((stock) => stock.secID);
-                    return getSecID().then((list) => {
-                        idArr = idArr.concat(list.filter((secID) => !(secID in curStock)));
-                        return idArr;
-                    });
-                }).then((idArr) => {
-                    if(idArr.length !== 0) {
-                        console.log('secID to update data: ', idArr);
-                        return Promise.all([
-                            syncdateCol.upsertMany(idArr.map((secID) => {
-                                return {
-                                    'filter': { secID: secID },
-                                    'update': { $set: { syncdate: time.format(today, 'YYYYMMDD') } }
-                                }
-                            })), //TODO question: updateMany vs update loop
-                            taskCol.insertMany(idArr.map((id) => {
-                                return {
-                                    'task': {
-                                        'type': 'updateStockData',
-                                        'pack': id
-                                    },
-                                    'status': taskStatus.ready,
-                                    'log': [{
-                                        'desc': 'build new',
-                                        'time': time.format(time.now()),
-                                        'err': null
-                                    }]
-                                }
-                            }))
-                        ]);
-                    }
-                }).then(() => {
-                    console.log('produce task done!');
-                    lastSyncDate = time.today();
-                }, (err) => {
-                    console.log(err);
-                }).then(loop);
-            }
-            else {
-                console.log('no task produced now');
-                loop();
-            }
-        }, produceInterval);
-    }
-    loop();
-}
-
-var clearTimeout = function() {
-    var loop = function() {
-        setTimeout(() => {
-            taskCol.clearTimeout().then((r) => {
-                console.log('cleared task number: ', r.result.nModified);
-            }, (err) => {
-                console.log('fail to clear timeout task: ', err);
-            }).then(loop);
-        }, timeoutInterval)
-    }
-    loop();
-}
-
-var pathLib = {
-    '/taskManager': require('./taskManager/http'),
-    '/simulate': require('./simulate/http').simulate,
-    '/lastSimDate': require('./simulate/http').lastSimDate,
-    '/trade': require('./trade/http')
-};
-var createServer = function() {
+/**
+ * create server which receives http request from producer&consumer&taskHandler
+ */
+function createServer() {
     var server = http.createServer((req, res) => {
-        // deal with preflight
-        if(req.headers['access-control-request-method']) {
-            res.writeHead(200, {
-                'Access-Control-Allow-Origin': req.headers.origin,
-                'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
-                'Access-Control-Allow-Method': req.headers['access-control-request-method']
-            });
-            res.end();
-            return;
-        }
-        var body = [];
-        var pathname = url.parse(req.url).pathname;
-        var verb = req.headers.verb;
-        req.on('data', (chunk) => body.push(chunk));
-        req.on('end', () => {
-            if(pathname in pathLib) {
-                try {
-                    var arg = JSON.parse(body.toString());
-                }
-                catch (err) {
-                    console.log('invalid JSON format');
-                    res.writeHead(400);
-                    res.end();
-                    return;
-                }
-                pathLib[pathname](arg, verb, res, req);
-            }
-            else {
-                console.log('invalid path');
-                res.writeHead(400);
-                res.end();
-            }
-        })
+        //* preflight request
+         if(req.headers['access-control-request-method']) {
+             res.writeHead(200, {
+                 'Access-Control-Allow-Origin': req.headers.origin,
+                 'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
+                 'Access-Control-Allow-Method': req.headers['access-control-request-method']
+             });
+             res.end();
+             return;
+         }
+         var path = url.parse(req.url).pathname;
+         //* invalid path
+         if(!(path in pathMap)) {
+             res.writeHead(400);
+             res.end();
+             return;
+         }
+         var verb = req.headers.verb;
+         var body = [];
+         req.on('data', (chunk) => body.push(chunk));
+         req.on('end', () => {
+             var content = Buffer.concat(body).toString();
+             try {
+                 var data = JSON.parse(content);
+             }
+             catch (err) {
+                 res.writeHead(400);
+                 res.end();
+                 return;
+             }
+             //* call corresponding http handler
+             pathMap[path](data, verb, res, req);
+         });
     });
-    server.listen(port, host);
-    console.log('start to listen on port: ', port);
+    server.listen(config.dispatcherPort, config.dispatcherHost);
+    console.log('start to listen on ', config.dispatcherHost, ': ', config.dispatcherPort);
 }
+
+/**
+ * remove timeout task from taskCol
+ */
+function removeTimeOutTask() {
+    var loop = function() {
+        setTimeout(() => {
+            taskCol.update({
+                'status': taskStatus.processing, 'lastProcessedTs': { $lt: time.getTs(time.now()) - config.maxTaskDuration }
+            }, {
+                $set: { 'status': taskStatus.ready },
+                $push: { 'log': {
+                    'desc': 'task time out',
+                    'time': time.format(time.now()),
+                    'err': new Error('task time out')
+                }}
+            }).then((r) => {
+                console.log('remove timeout task, #: ', r.result.nModified);
+            }, (err) => {
+                console.log('fail to remove task: ', err);
+                process.exit();
+            }).then(loop);
+        }, config.checkTimeoutInterval);
+    };
+    loop();
+}
+
+/**
+ * check waiting task if the ready condition has been satisfied.
+ */
+function checkWaitingTask() {
+    var loop = function() {
+        setTimeout(() => {
+            taskCol.find({ status: taskStatus.wait }).then((docs) => {
+                var i = 0;
+                var N = docs.length;
+                var readyTaskId = [];
+
+                //* find waiting task whoes ready condtion is true
+                return async.parallel(() => {
+                    return i < N;
+                }, () => {
+                    var j = i++;
+                    var type = docs[j].readyCondition.type;
+                    var pack = docs[j].readyCondition.pack;
+                    return checkReadyCondition(type, pack).then((r) => {
+                        if(r) readyTaskId.push(docs[j]._id);
+                    });
+                }, config.parallelN).then(() => { return readyTaskId; });
+            }).then((readyTaskId) => {
+                //* update status from wait to ready
+                console.log('find waiting task ready: ', readyTaskId);
+                return readyTaskId.length === 0
+                ? Promise.resolve()
+                : taskCol.updateMany(readyTaskId.map((id) => {
+                    return {
+                        'filter': { _id: id },
+                        'update': {
+                            $set: { status: taskStatus.ready },
+                            $push: { log: {
+                                'desc': 'update waiting task to ready',
+                                'time': time.format(time.now()),
+                                'err': null
+                            }}
+                        }
+                    }
+                }));
+            }).then((r) => {
+                console.log('check waiting task finished');
+            }, (err) => {
+                console.log('find error: ', err);
+                process.exit();
+            }).then(loop);
+        }, config.checkWaitingTaskInterval)
+    };
+    loop();
+}
+
+function run() {
+    createServer();
+    removeTimeOutTask();
+    checkWaitingTask();
+};
 
 run();

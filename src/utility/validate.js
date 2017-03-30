@@ -4,7 +4,7 @@ exports.isStr = function (val) {
 }
 
 exports.isObj = function (val) {
-    return typeof val === 'object';
+    return typeof val === 'object' && !exports.isArr(val) && val !== null;
 }
 
 exports.isNum = function (val) {

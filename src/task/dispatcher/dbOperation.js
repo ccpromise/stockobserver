@@ -1,7 +1,9 @@
 
-var replaceObjId = require('../../utility').replaceObjId;
+const replaceObjId = require('../../utility').replaceObjId;
 
-// General collection operation handler.
+/**
+ * General collection operation handler.
+ */
 module.exports = function(col, arg, verb, res) {
     arg = replaceObjId(arg);
     var promise = null;

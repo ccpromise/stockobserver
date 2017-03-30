@@ -1,6 +1,6 @@
 
-var config = require('../../config');
-var request = require('../../utility').request;
+var config = require('../config');
+var request = require('../utility').request;
 
 module.exports = function(path, data, verb) {
     var opt = {

@@ -1,6 +1,7 @@
 
 var db = require('../db');
-var simulateCol = db.getCollection('simulate', {
+
+exports.simulateCol = db.getCollection('simulate', {
     '_id': true,
     'tradeplanId': true,
     'secID': true,
@@ -14,12 +15,10 @@ var simulateCol = db.getCollection('simulate', {
     'lp': true,
     'closed': true
 });
-var lastSimDateCol = db.getCollection('lastSimDateCol', {
+
+exports.simdateCol = db.getCollection('simdateCol', {
     '_id': true,
     'tradeplanId': true,
     'secID': true,
     'lastSimDate': true
 })
-
-exports.simulateCol = simulateCol;
-exports.lastSimDateCol = lastSimDateCol;
