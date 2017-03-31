@@ -12,8 +12,11 @@
  * var pvdPromise = makeDataPvd({ type: 'ma', pack: { pvd: { type: 'end', pack: '000001.xshe'}, N: 10}})
  * generate a moving average data provider, which use end-data of stock '000001.xshe' and average window size is 10.
  */
-const validate = require('../utility').validate;
-const cachedPvdList = {'ma': true, 'std': true, 'boll': true, 'ema': true, 'macd': true}
+const utility = require('../utility');
+const validate = utility.validate;
+const Cache = utility.Cache;
+const cacheCapacity = require('../config').cacheCapacity;
+const cachePvdList = {'ma': true, 'std': true, 'boll': true, 'ema': true, 'macd': true}
 const DataPvdLib = require('./pvdClass');
 const pvdMap = {
     'ma': DataPvdLib.MADataPvd,
@@ -57,15 +60,27 @@ function pvdID(ldp) {
 /**
  * generate date pvd according to ldp.
  */
-var pvdPromiseMap = {};
+var pvdCache = new Cache(cacheCapacity, true);
 function makePvd(ldp) {
     return Promise.resolve().then(() => {
         if(ldp instanceof DataPvdLib.DataPvd) return ldp;
         if(!checkldp(ldp)) throw new Error('invalid literal dp');
         var id = pvdID(ldp);
-        if(id in pvdPromiseMap) return pvdPromiseMap[id];
+        if(pvdCache.has(id)) return pvdCache.get(id);
         var promise = pvdMap[ldp.type].makePvd(ldp.pack, id);
-        if(ldp.type in cachedPvdList) pvdPromiseMap[id] = promise;
+        if(ldp.type in cachePvdList) {
+            pvdCache.set(id, promise);
+            var refPvdIDs = pvdMap[ldp.type].refPvdIDs(id);
+            promise.then(() => {
+                //* if this pvd refers to other cache which are also in cache, then bind a reference between these them.
+                //* when other cache is removed, this pvd cache should remove too.
+                for(let refID of refPvdIDs) {
+                    if(pvdCache.has(refID)) {
+                        pvdCache.addReference(id, refID);
+                    }
+                }
+            })
+        }
         return promise;
     })
 }
@@ -73,3 +88,4 @@ function makePvd(ldp) {
 exports.checkldp= checkldp;
 exports.pvdID = pvdID;
 exports.makePvd = makePvd;
+exports.cache = pvdCache; // TODO for test: /stockobserver/tests/dataPVdGenerator/makeDataPvd.js, try that case first, then remove this line.

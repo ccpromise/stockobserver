@@ -35,7 +35,14 @@ function pvdID(paramObj) {
     return 'ma' + '_' + paramObj.N + '__' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
+/**
+ * referenceID: key - this.id
+ *              value - this.pvd.id
+ */
+var referenceID = new Map();
 function makePvd(paramObj, id) {
+    var refPvdID = pvdGenerator.pvdID(paramObj.pvd);
+    referenceID.set(id, new Set([refPvdID]));
     return pvdGenerator.makePvd(paramObj.pvd).then((subPvd) => {
         return new MADataPvd(subPvd, paramObj.N, id);
     });
@@ -44,5 +51,8 @@ function makePvd(paramObj, id) {
 module.exports = {
     'checkParams': checkParams,
     'pvdID': pvdID,
-    'makePvd': makePvd
+    'makePvd': makePvd,
+    'refPvdIDs': function(id) {
+        return referenceID.get(id);
+    }
 }

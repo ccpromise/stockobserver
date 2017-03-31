@@ -1,11 +1,11 @@
 
-var StatDataPvd = require('./StatDataPvd');
-var pvdGenerator = require('../../../dataPvd/makeDataPvd');
-var utility = require('../../../utility');
-var statistics = utility.statistics;
-var validate = utility.validate;
-var object = utility.object;
-var k = require('../../../config').bollingerK;
+const StatDataPvd = require('./StatDataPvd');
+const pvdGenerator = require('../../../dataPvd/makeDataPvd');
+const utility = require('../../../utility');
+const statistics = utility.statistics;
+const validate = utility.validate;
+const object = utility.object;
+const k = require('../../../config').bollingerK;
 
 function BollDataPvd(pvd, N, id) {
     StatDataPvd.call(this, pvd, N, id);
@@ -40,7 +40,14 @@ function pvdID(paramObj) {
     return 'boll' + '_' + paramObj.N + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
+/**
+ * referenceID: key - this.id
+ *              value - this.pvd.id
+ */
+var referenceID = new Map();
 function makePvd(paramObj, id) {
+    var refPvdID = pvdGenerator.pvdID(paramObj.pvd);
+    referenceID.set(id, new Set([refPvdID]));
     return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
         return new BollDataPvd(pvd, paramObj.N, id);
     });
@@ -49,5 +56,8 @@ function makePvd(paramObj, id) {
 module.exports = {
     'checkParams': checkParams,
     'pvdID': pvdID,
-    'makePvd': makePvd
-}
+    'makePvd': makePvd,
+    'refPvdIDs': function(id) {
+        return referenceID.get(id);
+    }
+};

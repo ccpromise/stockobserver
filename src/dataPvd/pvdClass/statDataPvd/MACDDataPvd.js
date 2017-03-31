@@ -50,7 +50,20 @@ function pvdID(paramObj) {
     return 'macd' + '_' + paramObj.Nl + '_' + paramObj.Ns + '_' + paramObj.Na + '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
+/**
+ * referenceID: key - this.id
+ *              value - the id of pvds which this pvd relies on.
+ */
+var referenceID = new Map();
 function makePvd(paramObj, id) {
+    var ema1Literal = {'type': 'ema', 'pack': {'N': paramObj.Nl, 'pvd': paramObj.pvd}};
+    var ema2Literal = {'type': 'ema', 'pack': {'N': paramObj.Ns, 'pvd': paramObj.pvd}};
+    var difLiteral = {'type': 'sub', 'pack': {'pvds': [ema1Literal, ema2Literal], 'idx': 1}};
+    var deaLiteral = {'type': 'ema', 'pack': {'N': paramObj.Na, 'pvd': difLiteral}};
+    var ema1ID = pvdGenerator.pvdID(ema1Literal);
+    var ema2ID = pvdGenerator.pvdID(ema2Literal);
+    var deaID = pvdGenerator.pvdID(deaLiteral);
+    referenceID.set(id, new Set([ema1ID, ema2ID, deaID]));
     return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
         var ema1 = {'type': 'ema', 'pack': {'N': paramObj.Nl, 'pvd': pvd}};
         var ema2 = {'type': 'ema', 'pack': {'N': paramObj.Ns, 'pvd': pvd}};
@@ -71,5 +84,8 @@ function makePvd(paramObj, id) {
 module.exports = {
     'checkParams': checkParams,
     'pvdID': pvdID,
-    'makePvd': makePvd
+    'makePvd': makePvd,
+    'refPvdIDs': function(id) {
+        return referenceID.get(id);
+    }
 }

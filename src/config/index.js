@@ -5,6 +5,7 @@ const process = require('process');
  * general
  */
 exports.parallelN = 5;
+exports.cacheCapacity = 50;
 
 /**
  * http

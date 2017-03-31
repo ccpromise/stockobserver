@@ -1,11 +1,12 @@
 
-var DataPvd = require('./DataPvd');
-var cache = require('../../../utility').cache;
-var msg = 'Not Implemented';
+const DataPvd = require('./DataPvd');
+const Cache = require('../../../utility').Cache;
+const cacheCapacity = require('../../../config').cacheCapacity;
+const msg = 'Not Implemented';
 
 function CachedDataPvd(id) {
     DataPvd.call(this, id);
-    this._cache = new cache();
+    this._cache = new Cache(cacheCapacity);
 }
 
 CachedDataPvd.prototype = Object.create(DataPvd.prototype);

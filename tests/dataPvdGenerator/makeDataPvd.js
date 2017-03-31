@@ -1,9 +1,44 @@
 
 var makeDataPvd = require('../../src/dataPvd').makePvd;
+var cache = require('../../src/dataPvd').cache;
 var CombinedDataPvd = require('../../src/dataPvd/pvdClass/combinedDataPvd/CombinedDataPvd');
 var assert = require('assert');
+var async = require('../../src/utility').async;
+
+var ldp1 = {'type': 'end', 'pack': '000001.xshe'};
+var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 1}};
+var ldp3 = {'type': 'ma', 'pack': {'pvd': ldp2, 'N': 1}};
+
+makeDataPvd(ldp3).then(() => {
+    // now ldp2 and ldp3 in cache.
+    // call makeDataPvd(lpd3) again to make sure ldp2 is the least recently used.
+    return makeDataPvd(ldp3).then(() => {
+        var p = Promise.resolve();
+        var i = 3;
+        var max = 50;
+        // add other 48 dp into cache. the maximum capacity of cache is 50.
+        return async.while(() => {
+            return i <= 50;
+        }, () => {
+            var cpy = JSON.parse(JSON.stringify(ldp2));
+            cpy.pack.N = i++;
+            return makeDataPvd(cpy);
+        })
+    }).then(() => {
+        // now cache is full. we try to add one more item into cache.
+        // the least recently used ldp2 will be removed. As ldp3 refers to ldp2, ldp3 will be removed too.
+        console.log(cache.toString());
+        var cpy = JSON.parse(JSON.stringify(ldp2));
+        cpy.pack.N = 51;
+        return makeDataPvd(cpy);
+    }).then(() => {
+        console.log(cache.toString());
+    })
+})
 
 
+
+/*
 var ldp1 = {'type': 'end', 'pack': '000001.xshe'};
 var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 5}};
 makeDataPvd(ldp1).then((end) => {
@@ -53,3 +88,4 @@ makeDataPvd(ldp1).then((end) => {
     var ldp3 = {'type': 'ma', 'pack': {'pvd': end, 'N': 5}};
     return makeDataPvd(ldp3).then(() => makeDataPvd(ldp3));
 });
+*/
