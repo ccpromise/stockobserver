@@ -148,16 +148,28 @@ Collection.prototype.remove = function(filter, opt) {
     });
 };
 
-Collection.prototype.find = function(filter, field) {
+Collection.prototype.find = function(filter, field, sort) {
     field = field || this.defaultFields;
+    sort = sort || { $nature: 1 };
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
-            col.find(filter, field).toArray((err, r) => {
+            col.find(filter, field).sort(sort).toArray((err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             });
         });
     });
+};
+
+Collection.prototype.count = function () {
+    return this._getCol().then((col) => {
+        return new Promise((resolve, reject) => {
+            col.count((err, r) => {
+                if(err) reject(err);
+                else resolve(r);
+            })
+        })
+    })
 };
 
 // opt: {
@@ -247,12 +259,18 @@ Collection.prototype.insertMany = function(docArr, opt) {
     })
 }
 
-Collection.prototype.findPagination = function(filter, sort, pageNum, pageSize) {
+Collection.prototype.findPagination = function(filter, pageNum, pageSize, sort) {
+    sort = sort || { $nature: 1 };
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
             col.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize).toArray((err, r) => {
                 if(err) reject(err);
-                else resolve(r);
+                else resolve({
+                    pageNum: pageNum,
+                    pageSize: pageSize,
+                    total: r.length,
+                    data: r
+                });
             })
         })
     })

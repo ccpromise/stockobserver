@@ -11,7 +11,28 @@ const host = 'stockanalysis.blob.core.chinacloudapi.cn';
 const stockDataContainer = 'newsysraw';
 const stockListPath = 'newsysstatic/allstocks.txt';
 
-var getStockList = function() {
+/**
+ * download stock data to local directory
+ * invocation sample: node downloadStockData.js './data'
+ */
+function downloadStockData(localPath) {
+    return getStockList().then((list) => {
+        var remainingList = list;
+        var retry = 0;
+
+        return async.doWhile(() => {
+            return remainingList.length !== 0 && retry < maxRetry;
+        }, () => {
+            return download(remainingList, localPath).then((errList) => {
+                remainingList = errList;
+                retry ++;
+                console.log('# of error downloads: ', errList.length);
+            })
+        }).then(() => console.log('final error list: ', remainingList));
+    })
+}
+
+function getStockList() {
     return request({
         host: host,
         path: stockListPath,
@@ -20,7 +41,7 @@ var getStockList = function() {
     })
 }
 
-var download = function(list, localPath) {
+function download(list, localPath) {
     var i = 0;
     var N = list.length;
     var errList = [];
@@ -41,22 +62,6 @@ var download = function(list, localPath) {
     }, parallelN).then(() => { return errList; });
 }
 
-var downloadStockData = function(localPath) {
-    return getStockList().then((list) => {
-        console.log(list);
-        var remainingList = list;
-        var retry = 0;
-
-        return async.doWhile(() => {
-            return remainingList.length !== 0 && retry < maxRetry;
-        }, () => {
-            return download(remainingList, localPath).then((errList) => {
-                remainingList = errList;
-                retry ++;
-                console.log('# of error downloads: ', errList.length);
-            })
-        }).then(() => console.log('final error list: ', remainingList));
-    })
-}
-
-downloadStockData(process.argv[2]).catch((err) => console.log(err));
+const localDir = process.argv[2];
+console.log('start to download stock data to local directory: ', localDir);
+downloadStockData(localDir).catch((err) => console.log(err));

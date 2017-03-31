@@ -9,7 +9,7 @@ var getTotalItems = function(secID, callback) {
         }
     }
     req.open('POST', dispatcherUrl, true);
-    req.setRequestHeader('verb', 'getTotal');
+    req.setRequestHeader('verb', 'count');
     req.send(secID === '' ? '{}' : JSON.stringify({ secID: secID.toLowerCase() }));
 }
 
@@ -18,7 +18,6 @@ var getSimData = function(pageNum, pageSize, secID, sort, callback) {
     req.onreadystatechange = function() {
         if(req.readyState === 4 && req.status === 200) {
             var data = JSON.parse(req.responseText);
-            data.sort((x, y) => { return x.sdts - y.sdts; });
             callback(data);
         }
     }
@@ -69,8 +68,8 @@ new Vue({
             this.pagination.currentPage = page;
 
             if(this.pagination.currentPage === 0) this.paginatedItems = [];
-            else getSimData(this.pagination.currentPage, this.pagination.itemPerPage, this.searchItem, this.sort, (data) => {
-                this.paginatedItems = data;
+            else getSimData(this.pagination.currentPage, this.pagination.itemPerPage, this.searchItem, this.sort, (ret) => {
+                this.paginatedItems = ret.data;
             })
         },
         loadData: function (page) {

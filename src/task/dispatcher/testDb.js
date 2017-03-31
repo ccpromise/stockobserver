@@ -13,10 +13,8 @@ Promise.all([taskCol.find({}), producedateCol.find({}), simulateCol.find({}), si
     arr.forEach((r) => {
         console.log(r)
     });
-    var res = arr[0];
+    var res = arr[2];
     console.log(res);
-    res = arr[1];
-    console.log(res[0]);
 });
 
 
