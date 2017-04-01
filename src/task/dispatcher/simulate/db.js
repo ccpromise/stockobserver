@@ -1,5 +1,9 @@
 
-var db = require('../db');
+/**
+ * simulate collection: maintain all the simulate trades.
+ * simdate collection: last simulate date for each tradeplan & secID
+ */
+const db = require('../db');
 
 exports.simulateCol = db.getCollection('simulate', {
     '_id': true,

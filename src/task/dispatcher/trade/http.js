@@ -1,4 +1,7 @@
 
+/**
+ * handler of http request to query trade plan collection
+ */
 const tradeplanCol = require('./db').tradeplanCol;
 const replaceObjId = require('../../../utility').replaceObjId;
 const dbOperation = require('../dbOperation');

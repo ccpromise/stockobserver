@@ -1,4 +1,7 @@
 
+/**
+ * mongodb instance
+ */
 const Database = require('../../utility').database;
 const mongoUrl = require('../../config').mongoUrl;
 

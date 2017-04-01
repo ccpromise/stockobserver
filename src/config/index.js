@@ -34,7 +34,7 @@ exports.mongoUrl = 'mongodb://localhost:27017/myproject';
 /**
  * consumer
  */
-exports.waitTime = [0, 5000, 10000, 15000, 20000];
+exports.consumerQueryIntervals = [0, 5000, 10000, 15000, 20000];
 
 /**
  * dispatcher

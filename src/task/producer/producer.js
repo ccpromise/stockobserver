@@ -1,16 +1,20 @@
 
+/**
+ * produce task at specific time every day.
+ * task includes: 1) update stock data. 2) simulate trade.
+ * usage: node producer.js
+ */
 const config = require('../../config');
+const taskStatus = require('../../constants').taskStatus;
 const utility = require('../../utility');
 const time = utility.time;
 const azure = utility.azureStorage;
+const httpReq = require('../httpReqTmpl');
+const getSecID = require('../../datasrc/wmcloud').getSecID;
+
 var lastProducedate = time.yesterday();
 
-const httpReq = require('../httpReqTmpl');
-//const getSecID = require('../../datasrc/wmcloud').getSecID;
-
-const taskStatus = require('../../constants').taskStatus;
-
-var run = function() {
+function run() {
     var loop = function() {
         setTimeout(() => {
             var today = time.today();
@@ -53,15 +57,16 @@ function getTaskList() {
             }
             return pre;
         }, {});
+        /**
+         * new task will be created:
+         * 1\ secID not exist in current producedateCol.
+         * 2\ or, last producedate is before today and task status is not ready.
+         */
         var today = time.today();
         var updateList = allList.filter((secID) => {
-            /**
-             * new task will be created:
-             * 1\ secID not exist in current producedateCol.
-             * 2\ or, last producedate is before today and task status is not ready.
-             */
             return !(secID in curList) || (time.isAfter(today, curList[secID].producedate) && curList[secID].status !== taskStatus.ready);
-        }).map((secID) => secID.toLowerCase());
+        });
+        //* notice: as all stock secID stored in Azure are lower case. make sure getSecID() return lowercase secID array.
         return updateList;
     });
 }
@@ -70,12 +75,6 @@ function getProducedate() {
     return httpReq('/producedate', { filter: {} }, 'find').then((r) => {
         return JSON.parse(r.toString());
     });
-}
-
-function getSecID() {
-    return azure(config.azureUsr).getBlobToText('stockmeta', 'allstocks.txt').then((r) => {
-        return r.toString().split(';');
-    })
 }
 
 /**

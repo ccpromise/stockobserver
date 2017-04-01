@@ -19,6 +19,9 @@ exports.simdate = function(arg, verb, res) {
     dbOperation(simdateCol, arg, verb, res);
 }
 
+/**
+ * http request from other domain
+ */
 function corsReq(verb, arg, req, res) {
     var filter = arg.filter;
     var pageNum = arg.pageNum;

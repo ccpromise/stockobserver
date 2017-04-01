@@ -1,4 +1,11 @@
 
+/**
+ * dispatcher: manage all tasks status.
+ * 1) receive newly produced tasks from producer
+ * 2) dispatch ready tasks to consumer.
+ * 3) receive execution results from consumer.
+ * usage sample: node dispatcher.js
+ */
 const http = require('http');
 const url = require('url');
 const config = require('../../config');
@@ -7,7 +14,6 @@ const time = utility.time;
 const async = utility.async;
 const taskStatus = require('../../constants').taskStatus;
 const checkReadyCondition = require('./checkReadyCondition');
-//const ObjectId = require('mongodb').ObjectId;
 
 /**
  * task collection
@@ -29,7 +35,7 @@ const pathMap = {
 }
 
 /**
- * create server which receives http request from producer&consumer&taskHandler
+ * create server which receives http request from producer&consumer&task handlers
  */
 function createServer() {
     var server = http.createServer((req, res) => {

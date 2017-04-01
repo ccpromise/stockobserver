@@ -7,7 +7,7 @@ var time = utility.time;
 var makePvd = require('../../../dataPvd').makePvd;
 var httpReq = require('../../httpReqTmpl');
 
-exports.checkArgs = function(args) {
+exports.checkPack = function(args) {
     return validate.isObj(args) && object.numOfKeys(args) === 2 && validate.isStr(args.tradeplanId) && validate.isStr(args.secID);
 }
 
@@ -17,8 +17,8 @@ exports.run = function(args) {
     var valueMap = { secID: secID };
 
     return httpReq('/trade', { filter: { _id: tradeplanId } }, 'findOne').then((r) => {
-        // plan: {_id: , desc, dpInTmpl, dpOutTmpl}
-        console.log('find tradeplan');
+        //* plan: {_id: , desc, dpInTmpl, dpOutTmpl}
+        //console.log('find tradeplan'); //TODO delete for test
         var plan = JSON.parse(r.toString());
         if(plan === null) return Promise.reject(new Error('invalid tradeplanId'));
         var dpInLiteral = refReplace(plan.dpInTmpl, valueMap);
@@ -48,10 +48,10 @@ exports.run = function(args) {
                         'closed': false
                     } }, 'find').then((r) => { return JSON.parse(r.toString()); });
                 }).then((sims) => {
-                    console.log('find old sims: ', sims);
+                    //console.log('find old sims: ', sims); //TODO delete for test
                     return updateOldSim(sims, dpOut, endData);
                 }).then(() => {
-                    console.log('set sim ts: ', maxTs);
+                    //console.log('set sim ts: ', maxTs); // TODO delte for test
                     return httpReq('/simdate', { filter: { tradeplanId: tradeplanId, secID: secID }, update: { $set: { lastSimDate: maxTs } } }, 'upsert');
                 })
             })
@@ -65,7 +65,7 @@ function postNewSim(startTs, dpIn, endData, tradeplanId, secID) {
     var newSim = [];
     while(ts <= maxTs && ts !== -1) {
         if(dpIn.get(ts)) {
-            console.log('should buy at ', ts);
+            //console.log('should buy at ', ts); //TODO delete for test
             var price = endData.get(ts);
             newSim.push(httpReq('/simulate', { doc: {
                 tradeplanId: tradeplanId,
@@ -81,7 +81,7 @@ function postNewSim(startTs, dpIn, endData, tradeplanId, secID) {
                 closed: false
             } }, 'insert'));
         }
-        else console.log('not buy at ', ts);
+        //else console.log('not buy at ', ts); //TODO delete for test
         ts = dpIn.forwardDateTs(ts, 1);
     }
     return Promise.all(newSim);
@@ -111,12 +111,12 @@ function updateOldSim(sims, dpOut, endData){
                 ldts = ts;
             }
             if(dpOut.get(ts)) {
-                console.log('should sell at ', ts);
+                //console.log('should sell at ', ts); //TODO delete for test
                 edts = ts;
                 closed = true;
                 break;
             }
-            console.log('not sell at ', ts);
+            //console.log('not sell at ', ts); //TODO delete for test
             ts = dpOut.forwardDateTs(ts, 1);
         }
         if(closed === false) {
@@ -127,6 +127,6 @@ function updateOldSim(sims, dpOut, endData){
             'update': { $set: { edts: edts, hdts: hdts, ldts: ldts, ep: ep, hp: hp, lp: lp, closed: closed } }
         });
     });
-    console.log('update simulate: ', JSON.stringify(updates));
+    //console.log('update simulate: ', JSON.stringify(updates)); // TODO delete for test
     return httpReq('/simulate', updates, 'updateMany');
 }

@@ -3,7 +3,7 @@ var time = require('../../../src/utility').time;
 var fs = require('fs');
 
 
-wmcloud.getHistoryData('000002.XSHE').then((data) => {
+wmcloud.getHistoryData('000002.xshe').then((data) => {
     console.log(data);
 });
 //Promise.all([

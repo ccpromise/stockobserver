@@ -9,14 +9,19 @@ var opt = {
     headers: {
         'Authorization': 'Bearer ' + access_token,
     },
-    //useHttps: true
+    useHttps: true
 }
 
 module.exports = function() {
     return request(opt).then((content) => {
-        console.log(content.toString());
-        var data = JSON.parse(content.toString());
-        if(data.retCode !== 1) throw new Error(data.retMsg);
-        return data.data.filter((stock) => stock.listStatusCD === 'L' && (stock.exchangeCD === 'XSHG' ||stock.exchangeCD === 'XSHE')).map((stock) => stock.secID);
+        /** content.toString():
+         * secID,listStatusCD,exchangeCD
+         * "000001.XSHE","L","XSHE"
+         * "000002.XSHE","L","XSHE"
+         * "000003.XSHE","DE","XSHE"
+         * ....
+         */
+        var data = content.toString().split('\n').slice(1).map((str) => str.split(','));
+        return data.filter((item) => item[1] === '"L"' && (item[2] === '"XSHG"' || item[2] === '"XSHE"')).map((item) => item[0].toLowerCase().slice(1, -1));
     });
 }

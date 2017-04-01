@@ -9,7 +9,6 @@ var getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
 var container = config.stockdataContainer;
 
 exports.run = function(secID) {
-    secID = secID.toLowerCase();
     return azure.createContainerIfNotExists(container).then(() => {
         return azure.getBlobToText(container, secID + '.json').then((stockData) => {
             stockData = JSON.parse(stockData);
@@ -42,6 +41,6 @@ exports.run = function(secID) {
     })
 }
 
-exports.checkArgs = function(arg) {
+exports.checkPack = function(arg) {
     return validate.isStr(arg);
 }

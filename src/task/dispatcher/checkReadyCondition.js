@@ -1,4 +1,13 @@
 
+/**
+ * check if a waiting task should be converted to ready.
+ * usage sample:
+ * var checker = require('./checkReadyCondition');
+ * checker(type, pack).then((r) => {
+ * if(r) console.log('waiting task is ready to execute.');
+ * else console.log('task keeps waitint...');
+ * })
+ */
 module.exports = checkReadyCondition;
 
 const utility = require('../../utility');

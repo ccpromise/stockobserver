@@ -1,7 +1,11 @@
 
-var config = require('../config');
-var request = require('../utility').request;
 
+const config = require('../config');
+const request = require('../utility').request;
+
+/**
+ * template of http request to dispatcher.
+ */
 module.exports = function(path, data, verb) {
     var opt = {
         host: config.dispatcherHost,

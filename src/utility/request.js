@@ -46,7 +46,7 @@ function getRequestObj(opt) {
 module.exports = function (opt) {
     return new Promise((resolve, reject) => {
         var requestObj = getRequestObj(opt);
-        var req = (requestObj.useHttps && !config.isFiddler ? https : http).request(requestObj, (res) => {
+        var req = (opt.useHttps && !config.isFiddler ? https : http).request(requestObj, (res) => {
             var content = [];
             res.on('data', (chunk) => { content.push(chunk); });
             res.on('end', () => {

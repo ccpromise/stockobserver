@@ -10,6 +10,8 @@ var ldp2 = {'type': 'ma', 'pack': {'pvd': ldp1, 'N': 1}};
 var ldp3 = {'type': 'ma', 'pack': {'pvd': ldp2, 'N': 1}};
 
 makeDataPvd(ldp3).then(() => {
+    console.log('here');
+    console.log(cache.toString());
     // now ldp2 and ldp3 in cache.
     // call makeDataPvd(lpd3) again to make sure ldp2 is the least recently used.
     return makeDataPvd(ldp3).then(() => {
@@ -18,7 +20,7 @@ makeDataPvd(ldp3).then(() => {
         var max = 50;
         // add other 48 dp into cache. the maximum capacity of cache is 50.
         return async.while(() => {
-            return i <= 50;
+            return i <= max;
         }, () => {
             var cpy = JSON.parse(JSON.stringify(ldp2));
             cpy.pack.N = i++;

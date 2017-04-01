@@ -1,72 +1,91 @@
 
-var time = require('../../utility').time;
-var taskStatus = require('../../constants').taskStatus;
-var waitTime = require('../../config').waitTime;
-var taskLib = require('./taskLib');
-var httpReq = require('../httpReqTmpl');
+/**
+ * consumer:
+ * 1) get ready tasks from dispatcher
+ * 2) invoke handlers to perform task
+ * 3) report task results to dispatcher
+ * usage sample:
+ * node consumer.js
+ */
+const time = require('../../utility').time;
+const taskStatus = require('../../constants').taskStatus;
+const intervals = require('../../config').consumerQueryIntervals;
+const taskLib = require('./taskLib');
+const httpReq = require('../httpReqTmpl');
 
-var run = function() {
-    var len = waitTime.length;
+/**
+ * get task from dispatcher.
+ * if task is null, query time interval would be larger. else, execute the task the report result
+ */
+function run() {
     var i = 0;
-    var loop = function() {
+    var N = intervals.length;
+    var iter = function() {
         setTimeout(() => {
-            httpReq('/task', null, 'get').then((doc) => {
-                doc = JSON.parse(doc.toString());
-                if(doc === null) i = (i === (len - 1) ? i : (i + 1));
-                else return execute(doc).then(() => i = 0);
-            }).catch(err => console.log(err)).then(loop);
-        }, waitTime[i]);
-    }
-    loop();
-};
-
-var execute = function(doc) {
-    var taskType = doc.task.type;
-    var args = doc.task.pack;
-    var invalidArg = {
-        _id: doc._id,
-        status: taskStatus.fail,
-        lastProcessedTs: doc.lastProcessedTs,
-        log: {
-            'desc': 'task fail',
-            'time': time.format(time.now()),
-        }
+            httpReq('/task', null, 'get').then((r) => {
+                var task = JSON.parse(r.toString());
+                if(task === null) i = Math.min(i + 1, N - 1);
+                else return execute(task).then(report).then(() => { i = 0; });
+            }).catch((err) => {
+                console.log('find error in consumer: ', err);
+            }).then(iter);
+        }, intervals[i]);
     };
-    if(taskType in taskLib) {
-        var handler = taskLib[taskType];
-        if(handler.checkArgs(args)) {
-            return handler.run(args).then(() => {
-                return {
-                    _id: doc._id,
-                    status: taskStatus.success,
-                    lastProcessedTs: doc.lastProcessedTs,
-                    log: {
-                        'desc': 'task succeed',
-                        'time': time.format(time.now()),
-                        'err': null
-                    }
-                }
-            }, (err) => {
-                console.log('task fail');
-                return {
-                    _id: doc._id,
-                    status: taskStatus.fail,
-                    lastProcessedTs: doc.lastProcessedTs,
-                    log: {
-                        'desc': 'task fail',
-                        'time': time.format(time.now()),
-                        'err': err.message
-                    }
-                }
-            }).then((r) => {
-                return httpReq('/task', r, 'report');
-            });
+    iter();
+}
+
+/**
+ * invoke handler to execute tasks.
+ */
+function execute(doc) {
+    var taskType = doc.task.type;
+    var taskPack = doc.task.pack;
+    var handler = taskLib[taskType];
+
+    if(handler === undefined || !handler.checkPack(taskPack)) {
+        return {
+            _id : doc._id,
+            lastProcessedTs: doc.lastProcessedTs,
+            status: taskStatus.fail,
+            log: {
+                'desc': 'invalid task type or pack',
+                'time': time.format(time.now()),
+                'err': 'invalid task type or pack'
+            }
         }
-        invalidArg.log.err = 'invalid arguments: ' + args;
-        return httpReq('/task', invalidArg, 'report');
     }
-    invalidArg.log.err = 'invalid task type: ' + taskType;
-    return httpReq('/task', invalidArg, 'report');
+    return handler.run(taskPack).then(() => {
+        console.log('task success');
+        return {
+            _id: doc._id,
+            lastProcessedTs: doc.lastProcessedTs,
+            status: taskStatus.success,
+            log: {
+                'desc': 'task success',
+                'time': time.format(time.now()),
+                'err': null
+            }
+        }
+    }, (err) => {
+        console.log('task fail');
+        return {
+            _id: doc._id,
+            lastProcessedTs: doc.lastProcessedTs,
+            status: taskStatus.fail,
+            log: {
+                'desc': 'task fail',
+                'time': time.format(time.now()),
+                'err': err
+            }
+        }
+    })
+}
+
+/**
+ * report task result to dispatcher
+ */
+function report(result) {
+    return httpReq('/task', result, 'report');
 }
 
 run();
