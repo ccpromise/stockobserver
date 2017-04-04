@@ -8,18 +8,43 @@ const simulateCol = db.simulateCol;
 const simdateCol = db.simdateCol;
 const dbOperation = require('../dbOperation');
 const itemsPerPage = require('../../../../config').itemsPerPage;
+const validate = require('../../../../utility').validate;
 
-exports.simulate = function(arg, verb, res, req) {
-    if(verb === 'getMul') {
-        return corsReq(verb, arg, req, res);
-    }
-    else {
-        return dbOperation(simulateCol, arg, verb, res);
+exports.simulate = {
+    isValid: function (arg, verb) {
+        if(verb === 'getMul') {
+            return validate.isObj(arg.filter) && validate.isPosInt(arg.pageNum) && validate.isPosInt(arg.pageSize);
+        }
+        return (verb === 'find' || verb === 'updateMany' || verb === 'insert')
+        && dbOperation.isValid(verb, arg);
+    },
+    run: function (arg, verb, res, req) {
+        if(!exports.simulate.isValid(arg, verb)) {
+            res.writeHead(400);
+            res.end();
+            return Promise.resolve();
+        }
+        if(verb === 'getMul') {
+            return corsReq(verb, arg, req, res);
+        }
+        else {
+            return dbOperation.run(simulateCol, arg, verb, res);
+        }
     }
 }
 
-exports.simdate = function(arg, verb, res) {
-    return dbOperation(simdateCol, arg, verb, res);
+exports.simdate = {
+    isValid: function (arg, verb) {
+        return (verb === 'findOne' || verb === 'upsert')
+        && dbOperation.isValid(verb, arg);
+    },
+    run: function(arg, verb, res) {
+        if(!exports.simdate.isValid(arg, verb)) {
+            res.writeHead(400);
+            res.end();
+        }
+        return dbOperation.run(simdateCol, arg, verb, res);
+    }
 }
 
 /**

@@ -24,7 +24,7 @@ const err = new Error('invalid type and pack');
 const checkMap = {
     ok: () => { return Promise.resolve(true); },
     success: (pack) => {
-        if(validateId(pack)) return checkTaskStatus(pack,taskStatus.success);
+        if(validateId(pack)) return checkTaskStatus(pack, taskStatus.success);
         throw err;
     },
     fail: (pack) => {
@@ -66,7 +66,7 @@ function checkReadyCondition(type, pack) {
  * check if pack is string or string array
  */
 function validateId(pack) {
-    return pack instanceof ObjectId || (validate.isArr(pack) && pack.every((r) => r instanceof ObjectId));
+    return ObjectId.isValid(pack) || (validate.isArr(pack) && pack.every((r) => ObjectId.isValid(pack)));
 }
 
 /**
@@ -80,7 +80,7 @@ function validateArr(pack) {
  * check the status of task
  */
 function checkTaskStatus(pack, status) {
-    if(pack instanceof ObjectId) return checkTaskStatusHelper(pack, status);
+    if(ObjectId.isValid(pack)) return checkTaskStatusHelper(pack, status);
     return async.every(pack.map((id) => {
         return function() {
             return checkTaskStatusHelper(id, status);

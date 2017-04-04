@@ -11,23 +11,52 @@ const taskCol = db.taskCol;
 const producedateCol = db.producedateCol;
 const ObjectId = require('mongodb').ObjectId;
 const dbOperation = require('../dbOperation');
-const time = require('../../../../utility').time;
+const utility = require('../../../../utility');
+const time = utility.time;
+const validate = utility.validate;
 const taskStatus = require('../../../../constants').taskStatus;
 
-exports.task = function(arg, verb, res) {
-    if(verb === 'dispatch') {
-        return dispatch(res);
-    }
-    else if(verb === 'report') {
-        return report(arg, res);
-    }
-    else {
-        return dbOperation(taskCol, arg, verb, res);
+exports.task = {
+    isValid: function(arg, verb) {
+        if(verb === 'dispatch') return arg === null;
+        if(verb === 'report') {
+            return ObjectId.isValid(arg._id) && validate.isPosInt(arg.lastProcessedTs)
+            && (arg.status === taskStatus.fail || arg.status === taskStatus.success)
+            && (validate.isObj(arg.log) && validate.hasOwnProperty(arg.log, ['desc', 'time', 'err']));
+        }
+        return verb === 'insertMany' && dbOperation.isValid(verb, arg);
+    },
+    run: function(arg, verb, res) {
+        if(!exports.task.isValid(arg, verb)) {
+            res.writeHead(400);
+            res.end();
+            return Promise.resolve();
+        }
+        if(verb === 'dispatch') {
+            return dispatch(res);
+        }
+        else if(verb === 'report') {
+            return report(arg, res);
+        }
+        else {
+            return dbOperation.run(taskCol, arg, verb, res);
+        }
     }
 }
 
-exports.producedate = function(arg, verb, res) {
-    return dbOperation(producedateCol, arg, verb, res);
+exports.producedate = {
+    isValid: function(arg, verb) {
+        return (verb === 'find' || verb === 'upsertMany')
+        && dbOperation.isValid(verb, arg);
+    },
+    run: function(arg, verb, res) {
+        if(!exports.producedate.isValid(arg, verb)) {
+            res.writeHead(400);
+            res.end();
+            return Promise.resolve();
+        }
+        return dbOperation.run(producedateCol, arg, verb, res);
+    }
 }
 
 /**

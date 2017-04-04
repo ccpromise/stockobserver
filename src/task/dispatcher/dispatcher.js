@@ -70,10 +70,16 @@ function createServer() {
                  res.end();
                  return;
              }
-             //* call corresponding http handler
-             pathMap[path](data, verb, res, req).catch(() => {
+             //* check validity and call corresponding http handler
+             var handler = pathMap[path];
+             if(!handler.isValid(data, verb)) {
+                 res.writeHead(400);
+                 res.end();
+                 return;
+             }
+             handler.run(data, verb, res, req).catch(() => {
                  res.writeHead(500);
-                 res.en();
+                 res.end();
              })
          });
     });
