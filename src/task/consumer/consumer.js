@@ -22,7 +22,7 @@ function run() {
     var N = intervals.length;
     var iter = function() {
         setTimeout(() => {
-            httpReq('/task', null, 'get').then((r) => {
+            httpReq('/task', null, 'dispatch').then((r) => {
                 var task = JSON.parse(r.toString());
                 if(task === null) i = Math.min(i + 1, N - 1);
                 else return execute(task).then(report).then(() => { i = 0; });

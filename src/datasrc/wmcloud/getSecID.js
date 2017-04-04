@@ -4,7 +4,7 @@ var access_token = require('../../config').access_token;
 
 var opt = {
     host: 'api.wmcloud.com',
-    path: '/data/v1/api/master/getSecID.csv',
+    path: '/data/v1/api/master/getSecID.json',
     query: 'assetClass=E&field=secID,listStatusCD,exchangeCD',
     headers: {
         'Authorization': 'Bearer ' + access_token,
@@ -21,7 +21,10 @@ module.exports = function() {
          * "000003.XSHE","DE","XSHE"
          * ....
          */
-        var data = content.toString().split('\n').slice(1).map((str) => str.split(','));
-        return data.filter((item) => item[1] === '"L"' && (item[2] === '"XSHG"' || item[2] === '"XSHE"')).map((item) => item[0].toLowerCase().slice(1, -1));
+        var r = JSON.parse(content.toString());
+        if(r.retCode !== 1) throw new Error(r.retMsg);
+        return r.data.filter((stock) => stock.listStatusCD === 'L' && (stock.exchangeCD === 'XSHE' || stock.exchangeCD === 'XSHG')).map((stock) => {
+            return stock.secID.toLowerCase();
+        });
     });
 }

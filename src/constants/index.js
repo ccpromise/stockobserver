@@ -1,8 +1,8 @@
 
 exports.taskStatus = {
-    wait: -1,
-    ready: 0,
-    processing: 1,
-    success: 2,
-    fail: 3
+    wait: 0,
+    ready: 1,
+    processing: 2,
+    success: 3,
+    fail: 4
 }

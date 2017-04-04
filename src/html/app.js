@@ -1,17 +1,5 @@
 
-var dispatcherUrl = 'http://127.0.0.1:8000/simulate';
-
-var getTotalItems = function(secID, callback) {
-    var req = new XMLHttpRequest();
-    req.onreadystatechange = function() {
-        if(req.readyState === 4 && req.status === 200) {
-            callback(JSON.parse(req.responseText));
-        }
-    }
-    req.open('POST', dispatcherUrl, true);
-    req.setRequestHeader('verb', 'count');
-    req.send(secID === '' ? '{}' : JSON.stringify({ secID: secID.toLowerCase() }));
-}
+const dispatcherUrl = 'http://127.0.0.1:8000/simulate';
 
 var getSimData = function(pageNum, pageSize, secID, sort, callback) {
     var req = new XMLHttpRequest();
@@ -65,28 +53,22 @@ new Vue({
     },
     methods: {
         selectPage: function (page) {
-            this.pagination.currentPage = page;
-
-            if(this.pagination.currentPage === 0) this.paginatedItems = [];
-            else getSimData(this.pagination.currentPage, this.pagination.itemPerPage, this.searchItem, this.sort, (ret) => {
-                this.paginatedItems = ret.data;
-            })
-        },
-        loadData: function (page) {
-            getTotalItems(this.searchItem, (N) => {
-                this.totalItems = N;
-                this.selectPage(Math.min(page, this.totalPage));
+            getSimData(page, this.pagination.itemPerPage, this.searchItem, this.sort, (r) => {
+                this.pagination.currentPage = r.pageNum;
+                this.pagination.itemPerPage = r.pageSize;
+                this.totalItems = r.total;
+                this.paginatedItems = r.data;
             })
         },
         search: function () {
-            this.loadData(1);
+            this.selectPage(1);
         },
         clearSearch: function () {
             this.searchItem = '';
-            this.loadData(1);
+            this.selectPage(1);
         },
         update: function () {
-            this.loadData(this.pagination.currentPage);
+            this.selectPage(this.pagination.currentPage);
         },
         sortBy: function(key) {
             if(key === this.sortKey) this.order = -this.order;
@@ -94,10 +76,10 @@ new Vue({
                 this.sortKey = key;
                 this.order = 1;
             }
-            this.loadData(this.pagination.currentPage);
+            this.selectPage(this.pagination.currentPage);
         }
     },
     mounted: function () {
-        this.loadData(1);
+        this.selectPage(1);
     }
 });

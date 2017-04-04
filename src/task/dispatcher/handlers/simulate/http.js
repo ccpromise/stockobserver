@@ -7,16 +7,19 @@ const db = require('./db');
 const simulateCol = db.simulateCol;
 const simdateCol = db.simdateCol;
 const dbOperation = require('../dbOperation');
+const pageSize = require('../../../../config').pageSize;
 
 exports.simulate = function(arg, verb, res, req) {
-    if(verb === 'getMul' || verb === 'getOne' || verb === 'getAll' || verb === 'count') {
-        corsReq(verb, arg, req, res);
+    if(verb === 'getMul') {
+        return corsReq(verb, arg, req, res);
     }
-    else dbOperation(simulateCol, arg, verb, res);
+    else {
+        return dbOperation(simulateCol, arg, verb, res);
+    }
 }
 
 exports.simdate = function(arg, verb, res) {
-    dbOperation(simdateCol, arg, verb, res);
+    return dbOperation(simdateCol, arg, verb, res);
 }
 
 /**
@@ -25,19 +28,28 @@ exports.simdate = function(arg, verb, res) {
 function corsReq(verb, arg, req, res) {
     var filter = arg.filter;
     var pageNum = arg.pageNum;
-    var pageSize = arg.pageSize;
+    var pageSize = Math.min(pageSize.max, Math.max(arg.pageSize, pageSize.min));
     var sort = arg.sort;
     var promise = null;
-    if(verb === 'count') {
-        promise = simulateCol.count();
-    }
-    else if(verb === 'getAll') {
-        promise = simulateCol.find(filter, null, sort);
-    }
-    else {
-        promise = simulateCol.findPagination(filter, verb === 'getOne' ? 1 : pageNum, verb === 'getOne' ? 1 : pageSize, sort);
-    }
-    promise.then((r) => {
+
+    return simulateCol.count(filter).then((r) => {
+        var total = r;
+        var totalPage = Math.floor(total / pageSize);
+        pageNum = Math.min(pageNum, totalPage);
+        var ret = {
+            pageNum: pageNum,
+            pageSize: pageSize,
+            total: total,
+        };
+        if(pageNum === 0) {
+            ret.data = [];
+            return ret;
+        }
+        return simulateCol.findPagination(filter, pageNum, pageSize, sort).then((r) => {
+            ret.data = r;
+            return ret;
+        })
+    }).then((r) => {
         res.writeHead(200, {
             'Access-Control-Allow-Origin': req.headers.origin,
             'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
@@ -53,5 +65,5 @@ function corsReq(verb, arg, req, res) {
             'Content-type': 'application/json'
         });
         res.end();
-    })
+    });
 }

@@ -161,10 +161,10 @@ Collection.prototype.find = function(filter, field, sort) {
     });
 };
 
-Collection.prototype.count = function () {
+Collection.prototype.count = function (filter) {
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
-            col.count((err, r) => {
+            col.count(filter, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             })
@@ -265,12 +265,7 @@ Collection.prototype.findPagination = function(filter, pageNum, pageSize, sort) 
         return new Promise((resolve, reject) => {
             col.find(filter).sort(sort).skip((pageNum - 1) * pageSize).limit(pageSize).toArray((err, r) => {
                 if(err) reject(err);
-                else resolve({
-                    pageNum: pageNum,
-                    pageSize: pageSize,
-                    total: r.length,
-                    data: r
-                });
+                else resolve(r);
             })
         })
     })

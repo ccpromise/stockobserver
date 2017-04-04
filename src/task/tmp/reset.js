@@ -1,12 +1,10 @@
 
-var taskCol = require('../dispatcher/taskManager/db').taskCol;
-var producedateCol = require('../dispatcher/taskManager/db').producedateCol;
-var simulate = require('../dispatcher/simulate/db');
-var trade = require('../dispatcher/trade/db').tradeplanCol;
-var simulateCol = simulate.simulateCol;
-var simdateCol = simulate.simdateCol;
-var tradePlan = require('../../strategy/tradeplan');
+var dbs = require('../dispatcher/handlers');
+var taskCol = dbs.task.db.taskCol;
+var producedateCol = dbs.task.db.producedateCol;
+var simulateCol = dbs.simulate.db.simulateCol;
+var simdateCol = dbs.simulate.db.simdateCol;
 
-Promise.all([trade.remove().then(() => { return trade.insertMany(Object.values(tradePlan)); }), taskCol.remove(), producedateCol.remove(), simulateCol.remove(), simdateCol.remove()]).then(() => {
+Promise.all([taskCol.remove(), producedateCol.remove(), simulateCol.remove(), simdateCol.remove()]).then(() => {
     console.log('done');
 });

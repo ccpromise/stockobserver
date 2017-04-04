@@ -1,5 +1,5 @@
 
-const replaceObjId = require('../../utility').replaceObjId;
+const replaceObjId = require('../../../utility').replaceObjId;
 const opMap = {
     'find': (col, arg) => { return col.find(arg.filter, arg.field, arg.sort); },
     'findOne': (col, arg) => { return col.findOne(arg.filter, arg.field, arg.opt); },
@@ -20,17 +20,15 @@ module.exports = function(col, arg, verb, res) {
     arg = replaceObjId(arg);
     var promise = null;
     if(verb in opMap) {
-        opMap[verb](col, arg).then((r) => {
+        return opMap[verb](col, arg).then((r) => {
             res.writeHead(200);
             res.end(JSON.stringify(r));
-        }).catch((err) => {
-            res.writeHead(500);
-            res.end();
-            console.log('find error in dp operation: ', err);
         });
     }
     else {
-        res.writeHead(400);
-        res.end();
+        return Promise.resolve().then(() => {
+            res.writeHead(400);
+            res.end();
+        });
     }
 }

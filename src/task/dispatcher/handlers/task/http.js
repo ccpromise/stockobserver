@@ -1,6 +1,6 @@
 
 /**
- * taskManager/http:
+ * task/http:
  * 1 insert newly created tasks from produer.
  * 2 find ready task and return to consumer
  * 3 receive task result, check and insert.
@@ -11,33 +11,32 @@ const taskCol = db.taskCol;
 const producedateCol = db.producedateCol;
 const ObjectId = require('mongodb').ObjectId;
 const dbOperation = require('../dbOperation');
-const time = require('../../../utility').time;
-const taskStatus = require('../../../constants').taskStatus;
+const time = require('../../../../utility').time;
+const taskStatus = require('../../../../constants').taskStatus;
 
 exports.task = function(arg, verb, res) {
-    if(verb === 'get') {
-        get(res);
+    if(verb === 'dispatch') {
+        return dispatch(res);
     }
     else if(verb === 'report') {
-        report(arg, res);
+        return report(arg, res);
     }
-    else dbOperation(taskCol, arg, verb, res);
+    else {
+        return dbOperation(taskCol, arg, verb, res);
+    }
 }
 
 exports.producedate = function(arg, verb, res) {
-    dbOperation(producedateCol, arg, verb, res);
+    return dbOperation(producedateCol, arg, verb, res);
 }
 
 /**
  * find and return ready task to consumer.
  */
-function get(res) {
-    findReadyTask().then((r) => {
+function dispatch(res) {
+    return findReadyTask().then((r) => {
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify(r));
-    }, (err) => {
-        res.writeHead(500);
-        res.end();
     });
 }
 
@@ -45,7 +44,7 @@ function get(res) {
  * accept result from consumer, check it and update collection.
  */
 function report(result, res) {
-    checkResultValidity(result).then((r) => {
+    return checkResultValidity(result).then((r) => {
         var _id = new ObjectId(result._id);
         if(r) {
             return taskCol.update({
@@ -63,10 +62,6 @@ function report(result, res) {
             res.writeHead(400);
             res.end();
         }
-    }).catch((err) => {
-        console.log(err);
-        res.writeHead(500);
-        res.end();
     });
 }
 

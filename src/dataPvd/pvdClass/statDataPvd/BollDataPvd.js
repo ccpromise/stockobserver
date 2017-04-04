@@ -5,10 +5,10 @@ const utility = require('../../../utility');
 const statistics = utility.statistics;
 const validate = utility.validate;
 const object = utility.object;
-const k = require('../../../config').bollingerK;
 
-function BollDataPvd(pvd, N, id) {
+function BollDataPvd(pvd, N, K, id) {
     StatDataPvd.call(this, pvd, N, id);
+    this.K = K;
 }
 
 BollDataPvd.prototype = Object.create(StatDataPvd.prototype);
@@ -26,18 +26,18 @@ BollDataPvd.prototype._calculate = function(ts) {
     var std = statistics.std(data);
     return {
         'MA': avg,
-        'UP': avg + k * std,
-        'DW': avg - k * std
+        'UP': avg + this.K * std,
+        'DW': avg - this.K * std
     };
 }
 
 function checkParams(paramObj) {
-    if(!validate.isObj(paramObj) || object.numOfKeys(paramObj) !== 2 || !validate.isPosInt(paramObj.N)) return false;
+    if(!(validate.isObj(paramObj) && (object.numOfKeys(paramObj) === 2 || object.numOfKeys(paramObj) === 3) && validate.isPosInt(paramObj.N) && (!paramObj.K || validate.isPosInt(paramObj.K)))) return false;
     return pvdGenerator.checkldp(paramObj.pvd);
 }
 
 function pvdID(paramObj) {
-    return 'boll' + '_' + paramObj.N + '_' + pvdGenerator.pvdID(paramObj.pvd);
+    return 'boll' + '_' + paramObj.N + '_' + (paramObj.K || 2)+ '_' + pvdGenerator.pvdID(paramObj.pvd);
 }
 
 /**
@@ -49,7 +49,7 @@ function makePvd(paramObj, id) {
     var refPvdID = pvdGenerator.pvdID(paramObj.pvd);
     referenceID.set(id, new Set([refPvdID]));
     return pvdGenerator.makePvd(paramObj.pvd).then((pvd) => {
-        return new BollDataPvd(pvd, paramObj.N, id);
+        return new BollDataPvd(pvd, paramObj.N, paramObj.K || 2, id);
     });
 }
 

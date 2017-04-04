@@ -13,24 +13,25 @@ const utility = require('../../utility');
 const time = utility.time;
 const async = utility.async;
 const taskStatus = require('../../constants').taskStatus;
-const checkReadyCondition = require('./checkReadyCondition');
+const checkReadyCondition = require('./condition/checkReadyCondition');
 
+const httpHandlers = require('./handlers');
 /**
  * task collection
  */
-const taskCol = require('./taskManager/db').taskCol;
+const taskCol = httpHandlers.task.db.taskCol;
 
 /**
  * all http handlers.
  */
-const simulateHttp = require('./simulate/http');
-const taskManagerHttp = require('./taskManager/http');
-const tradeHttp = require('./trade/http');
+const simulateHttp = httpHandlers.simulate.http;
+const taskHttp = httpHandlers.task.http;
+const tradeHttp = httpHandlers.trade.http;
 const pathMap = {
     '/simulate': simulateHttp.simulate,
     '/simdate': simulateHttp.simdate,
-    '/task': taskManagerHttp.task,
-    '/producedate': taskManagerHttp.producedate,
+    '/task': taskHttp.task,
+    '/producedate': taskHttp.producedate,
     '/trade': tradeHttp.tradeplan
 }
 
@@ -70,7 +71,10 @@ function createServer() {
                  return;
              }
              //* call corresponding http handler
-             pathMap[path](data, verb, res, req);
+             pathMap[path](data, verb, res, req).catch(() => {
+                 res.writeHead(500);
+                 res.en();
+             })
          });
     });
     server.listen(config.dispatcherPort, config.dispatcherHost);
