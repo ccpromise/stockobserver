@@ -30,7 +30,7 @@ exports.stockDataDir = '/Users/Chenchen/Desktop/GitExplore/stockobserver/data';
  * mongodb
  */
 exports.mongoUrl = 'mongodb://localhost:27017/myproject';
-exports.pageSize = {
+exports.itemsPerPage = {
     min: 5,
     max: 20
 };

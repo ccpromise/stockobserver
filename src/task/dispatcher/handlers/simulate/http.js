@@ -7,7 +7,7 @@ const db = require('./db');
 const simulateCol = db.simulateCol;
 const simdateCol = db.simdateCol;
 const dbOperation = require('../dbOperation');
-const pageSize = require('../../../../config').pageSize;
+const itemsPerPage = require('../../../../config').itemsPerPage;
 
 exports.simulate = function(arg, verb, res, req) {
     if(verb === 'getMul') {
@@ -28,7 +28,7 @@ exports.simdate = function(arg, verb, res) {
 function corsReq(verb, arg, req, res) {
     var filter = arg.filter;
     var pageNum = arg.pageNum;
-    var pageSize = Math.min(pageSize.max, Math.max(arg.pageSize, pageSize.min));
+    var pageSize = Math.min(itemsPerPage.max, Math.max(arg.pageSize, itemsPerPage.min));
     var sort = arg.sort;
     var promise = null;
 
