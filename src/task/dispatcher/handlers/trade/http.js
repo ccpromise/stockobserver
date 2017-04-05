@@ -8,6 +8,11 @@ const map = {
     'findOne': true
 }
 
+/**
+ * http request sent to tradeplanCol
+ * .isValid() check the validity of arg and verb
+ * .run() perform the actual request
+ */
 exports.tradeplan = {
     isValid: function (arg, verb) {
         return verb === 'findOne' && dbOperation.isValid(verb, arg);

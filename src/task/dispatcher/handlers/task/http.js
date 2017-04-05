@@ -16,6 +16,11 @@ const time = utility.time;
 const validate = utility.validate;
 const taskStatus = require('../../../../constants').taskStatus;
 
+/**
+ * http request sent to taskCol
+ * .isValid() check the validity of arg and verb
+ * .run() perform the actual request
+ */
 exports.task = {
     isValid: function(arg, verb) {
         if(verb === 'dispatch') return arg === null;
@@ -44,6 +49,11 @@ exports.task = {
     }
 }
 
+/**
+ * http request sent to producedateCol
+ * .isValid() check the validity of arg and verb
+ * .run() perform the actual request
+ */
 exports.producedate = {
     isValid: function(arg, verb) {
         return (verb === 'find' || verb === 'upsertMany')

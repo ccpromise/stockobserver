@@ -10,6 +10,11 @@ const dbOperation = require('../dbOperation');
 const itemsPerPage = require('../../../../config').itemsPerPage;
 const validate = require('../../../../utility').validate;
 
+/**
+ * http request sent to simulateCol
+ * .isValid() check the validity of arg and verb.
+ * .run() perform the actual request
+ */
 exports.simulate = {
     isValid: function (arg, verb) {
         if(verb === 'getMul') {
@@ -33,6 +38,11 @@ exports.simulate = {
     }
 }
 
+/**
+ * http request sent to simdateCol
+ * .isValid() check the validity of arg and verb
+ * .run() perform the actual request
+ */
 exports.simdate = {
     isValid: function (arg, verb) {
         return (verb === 'findOne' || verb === 'upsert')
