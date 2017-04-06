@@ -25,64 +25,39 @@ exports.task = {
     isValid: function(arg, verb) {
         if(verb === 'dispatch') return arg === null;
         if(verb === 'report') {
-            return ObjectId.isValid(arg._id) && validate.isPosInt(arg.lastProcessedTs)
+            return validate.isObj(arg) && ObjectId.isValid(arg._id) && validate.isPosInt(arg.lastProcessedTs)
             && (arg.status === taskStatus.fail || arg.status === taskStatus.success)
-            && (validate.isObj(arg.log) && validate.hasOwnProperty(arg.log, ['desc', 'time', 'err']));
+            && (validate.isObj(arg.log) && ['desc', 'time', 'err'].every((x) => { return arg.log.hasOwnProperty(x); }));
         }
         return verb === 'insertMany' && dbOperation.isValid(verb, arg);
     },
-    run: function(arg, verb, res) {
+    run: function(arg, verb) {
         if(!exports.task.isValid(arg, verb)) {
-            res.writeHead(400);
-            res.end();
-            return Promise.resolve();
+            return Promise.reject(400);
         }
         if(verb === 'dispatch') {
-            return dispatch(res);
+            return dispatch();
         }
         else if(verb === 'report') {
-            return report(arg, res);
+            return report(arg);
         }
         else {
-            return dbOperation.run(taskCol, arg, verb, res);
+            return dbOperation.run(taskCol, arg, verb);
         }
-    }
-}
-
-/**
- * http request sent to producedateCol
- * .isValid() check the validity of arg and verb
- * .run() perform the actual request
- */
-exports.producedate = {
-    isValid: function(arg, verb) {
-        return (verb === 'find' || verb === 'upsertMany')
-        && dbOperation.isValid(verb, arg);
-    },
-    run: function(arg, verb, res) {
-        if(!exports.producedate.isValid(arg, verb)) {
-            res.writeHead(400);
-            res.end();
-            return Promise.resolve();
-        }
-        return dbOperation.run(producedateCol, arg, verb, res);
     }
 }
 
 /**
  * find and return ready task to consumer.
  */
-function dispatch(res) {
-    return findReadyTask().then((r) => {
-        res.writeHead(200, { 'content-type': 'application/json' });
-        res.end(JSON.stringify(r));
-    });
+function dispatch() {
+    return findReadyTask();
 }
 
 /**
  * accept result from consumer, check it and update collection.
  */
-function report(result, res) {
+function report(result) {
     return checkResultValidity(result).then((r) => {
         var _id = new ObjectId(result._id);
         if(r) {
@@ -92,14 +67,11 @@ function report(result, res) {
                 $set: { status: result.status },
                 $push: { log: result.log }
             }).then(() => {
-                console.log('receive result and update collection.');
-                res.writeHead(200);
-                res.end();
+                return null;
             });
         }
         else {
-            res.writeHead(400);
-            res.end();
+            return Promise.reject(400);
         }
     });
 }

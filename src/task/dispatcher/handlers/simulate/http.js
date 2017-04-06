@@ -18,22 +18,21 @@ const validate = require('../../../../utility').validate;
 exports.simulate = {
     isValid: function (arg, verb) {
         if(verb === 'getMul') {
-            return validate.isObj(arg.filter) && validate.isPosInt(arg.pageNum) && validate.isPosInt(arg.pageSize);
+            return validate.isObj(arg) && validate.isObj(arg.filter)
+            && validate.isPosInt(arg.pageNum) && validate.isPosInt(arg.pageSize) && validate.isUndefinedOrObj(arg.sort);
         }
         return (verb === 'find' || verb === 'updateMany' || verb === 'insert')
         && dbOperation.isValid(verb, arg);
     },
-    run: function (arg, verb, res, req) {
+    run: function (arg, verb) {
         if(!exports.simulate.isValid(arg, verb)) {
-            res.writeHead(400);
-            res.end();
-            return Promise.resolve();
+            return Promise.reject(400);
         }
         if(verb === 'getMul') {
-            return corsReq(verb, arg, req, res);
+            return getMul(arg);
         }
         else {
-            return dbOperation.run(simulateCol, arg, verb, res);
+            return dbOperation.run(simulateCol, arg, verb);
         }
     }
 }
@@ -48,24 +47,19 @@ exports.simdate = {
         return (verb === 'findOne' || verb === 'upsert')
         && dbOperation.isValid(verb, arg);
     },
-    run: function(arg, verb, res) {
+    run: function(arg, verb) {
         if(!exports.simdate.isValid(arg, verb)) {
-            res.writeHead(400);
-            res.end();
+            return Promise.reject(400);
         }
-        return dbOperation.run(simdateCol, arg, verb, res);
+        return dbOperation.run(simdateCol, arg, verb);
     }
 }
 
-/**
- * http request from other domain
- */
-function corsReq(verb, arg, req, res) {
+function getMul(arg) {
     var filter = arg.filter;
     var pageNum = arg.pageNum;
     var pageSize = Math.min(itemsPerPage.max, Math.max(arg.pageSize, itemsPerPage.min));
     var sort = arg.sort;
-    var promise = null;
 
     return simulateCol.count(filter).then((r) => {
         var total = r;
@@ -84,21 +78,5 @@ function corsReq(verb, arg, req, res) {
             ret.data = r;
             return ret;
         })
-    }).then((r) => {
-        res.writeHead(200, {
-            'Access-Control-Allow-Origin': req.headers.origin,
-            'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
-            'Access-Control-Allow-Method': req.headers['access-control-request-method'],
-            'Content-type': 'application/json'
-        });
-        res.end(JSON.stringify(r));
-    }).catch((err) => {
-        res.writeHead(500, {
-            'Access-Control-Allow-Origin': req.headers.origin,
-            'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
-            'Access-Control-Allow-Method': req.headers['access-control-request-method'],
-            'Content-type': 'application/json'
-        });
-        res.end();
     });
 }

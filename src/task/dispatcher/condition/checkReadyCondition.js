@@ -22,44 +22,53 @@ const err = new Error('invalid type and pack');
  * check if ready condtion is satisfied
  */
 const checkMap = {
-    ok: () => { return Promise.resolve(true); },
-    success: (pack) => {
-        if(validateId(pack)) return checkTaskStatus(pack, taskStatus.success);
-        throw err;
+    ok: {
+        validate: () => { return true; },
+        handler: () => { return Promise.resolve(true); }
     },
-    fail: (pack) => {
-        if(validateId(pack)) return checkTaskStatus(pack, taskStatus.fail);
-        throw err;
+    success: {
+        validate: validateId,
+        handler: (pack) => { return checkTaskStatus(pack, taskStatus.success); }
     },
-    timeout: (pack) => {
-        if(validate.isPosInt(pacj)) return Promise.resolve(time.isAfter(time.now(), pack));
-        throw err;
+    fail: {
+        validate: validateId,
+        handler: (pack) => { return checkTaskStatus(pack, taskStatus.fail); }
     },
-    and: (pack) => {
-        if(validateArr(pack)) {
+    timeout: {
+        validate: validate.isPosInt,
+        handler: (pack) => { return Promise.resolve(time.isAfter(time.now(), pack)); },
+    },
+    and: {
+        validate: validateArr,
+        handler: (pack) => {
             return async.every(pack.map((x) => {
                 return function() {
                     return checkReadyCondition(x.type, x.pack);
                 }
             }));
         }
-        throw err;
     },
-    or: (pack) => {
-        if(validateArr(pack)) {
+    or: {
+        validate: validateArr,
+        handler: (pack) => {
             return async.some(pack.map((x) => {
                 return function() {
                     return checkReadyCondition(x.type, x.pack);
                 }
             }));
         }
-        throw err;
     }
 }
 
 function checkReadyCondition(type, pack) {
-    if(!(type in checkMap)) throw err;
-    return checkMap[type](pack);
+    if(!isValid(type, pack)) {
+        return Promise.reject(new Error('invalid type and pack'));
+    }
+    return checkMap[type].handler(pack);
+}
+
+function isValid(type, pack) {
+    return type in checkMap && checkMap[type].validate(pack);
 }
 
 /**

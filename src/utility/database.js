@@ -221,7 +221,7 @@ Collection.prototype.findOne = function(filter, field, opt) {
 // 'new': boolean,
 // 'fields': object
 // }
-Collection.prototype.findAndModify = function(filter, field, opt) {
+Collection.prototype.findAndModify = function(filter, update, opt) {
     opt = opt || Object.create(null);
     if(opt.new !== false) opt.new = true;
     var sort = [];
@@ -231,7 +231,7 @@ Collection.prototype.findAndModify = function(filter, field, opt) {
     }
     return this._getCol().then((col) => {
         return new Promise((resolve, reject) => {
-            col.findAndModify(filter, sort, field, opt, (err, r) => {
+            col.findAndModify(filter, sort, update, opt, (err, r) => {
                 if(err) reject(err);
                 else resolve(r);
             });

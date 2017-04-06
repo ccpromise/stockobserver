@@ -11,17 +11,4 @@ const tradeplanCol = db.getCollection('tradeplan', {
     'dpOutTmpl': true
 });
 
-/**
- * initial trade plan collection
- */
-tradeplanCol.find({}).then((docs) => {
-    var allPlans = Object.keys(plans);
-    var curPlans = docs.reduce((pre, cur) => {
-        pre[cur._id] = true;
-        return pre;
-    }, {});
-    var newPlans = allPlans.filter((planId) => !(planId in curPlans));
-    return newPlans.length === 0 ? Promise.resolve() : tradeplanCol.insertMany(newPlans.map((id) => plans[id]));
-});
-
 exports.tradeplanCol = tradeplanCol;

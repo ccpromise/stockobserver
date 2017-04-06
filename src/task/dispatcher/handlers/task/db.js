@@ -2,7 +2,7 @@
 /**
  * task/db:
  * taskCol: maintain all the tasks, including task literal, status, readyCondition, lastProcessingTime and log.
- * producedateCol: maintain the latest task produce date.
+ * lastSyncDateCol: maintain the latest task produce date.
  */
 const db = require('../db');
 
@@ -14,7 +14,7 @@ exports.taskCol = db.getCollection('taskCol', {
     'log': true
 });
 
-exports.producedateCol = db.getCollection('producedateCol', {
+exports.lastSyncDateCol = db.getCollection('lastSyncDateCol', {
     'secID': true,
-    'producedate': true
+    'lastSyncDate': true
 });

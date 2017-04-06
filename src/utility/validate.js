@@ -7,11 +7,8 @@ exports.isObj = function (val) {
     return typeof val === 'object' && !exports.isArr(val) && val !== null;
 }
 
-// TODO: obj.hasOwnProperty() won't work???
-exports.hasOwnProperty = function (obj, properties) {
-    if(!exports.isObj(obj)) throw new Error('invalid parameter');
-    if(exports.isStr(properties)) return properties in obj;
-    return exports.isArr(properties) && properties.every((p) => p in obj);
+exports.isUndefinedOrObj = function (val) {
+    return val === undefined || exports.isObj(val);
 }
 
 exports.isNum = function (val) {

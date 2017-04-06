@@ -12,14 +12,17 @@ const config = require('../../config');
 const utility = require('../../utility');
 const time = utility.time;
 const async = utility.async;
+const azure = utility.azureStorage;
 const taskStatus = require('../../constants').taskStatus;
 const checkReadyCondition = require('./condition/checkReadyCondition');
+const getSecID = require('../../datasrc/wmcloud').getSecID;
 
 const httpHandlers = require('./handlers');
 /**
  * task collection
  */
 const taskCol = httpHandlers.task.db.taskCol;
+const lastSyncDateCol = httpHandlers.task.db.lastSyncDateCol;
 
 /**
  * all http handlers.
@@ -31,7 +34,6 @@ const pathMap = {
     '/simulate': simulateHttp.simulate,
     '/simdate': simulateHttp.simdate,
     '/task': taskHttp.task,
-    '/producedate': taskHttp.producedate,
     '/trade': tradeHttp.tradeplan
 }
 
@@ -61,24 +63,34 @@ function createServer() {
          var body = [];
          req.on('data', (chunk) => body.push(chunk));
          req.on('end', () => {
+             var headers = { 'Content-type': 'application/json' };
+             if(req.headers.origin !== undefined) {
+                 headers['Access-Control-Allow-Origin'] = req.headers.origin;
+             }
              var content = Buffer.concat(body).toString();
              try {
                  var data = JSON.parse(content);
              }
              catch (err) {
-                 res.writeHead(400);
+                 console.log('wrong json format');
+                 res.writeHead(400, headers);
                  res.end();
                  return;
              }
              //* check validity and call corresponding http handler
              var handler = pathMap[path];
              if(!handler.isValid(data, verb)) {
-                 res.writeHead(400);
+                 res.writeHead(400, headers);
                  res.end();
                  return;
              }
-             handler.run(data, verb, res, req).catch(() => {
-                 res.writeHead(500);
+
+             handler.run(data, verb).then((r) => {
+                 res.writeHead(200, headers);
+                 res.end(JSON.stringify(r));
+             }).catch((err) => {
+                 var code = err === 400 ? 400 : 500;
+                 res.writeHead(code, headers);
                  res.end();
              })
          });
@@ -164,10 +176,135 @@ function checkWaitingTask() {
     loop();
 }
 
+var lastProducedate = time.yesterday();
+
+function producer() {
+    var loop = function() {
+        setTimeout(() => {
+            var today = time.today();
+            var produceTime = time.today(config.produceTime);
+            if(time.isAfter(time.now(), produceTime) && time.isAfter(today, lastProducedate)) {
+                console.log('start to produce task...');
+                //* find secID list to produce task
+                return getTaskList().then((list) => {
+                    console.log('# of stocks to update: ', list.length);
+                    if(list.length === 0) return Promise.resolve();
+                    //* produce stock data update task
+                    return insertUpdateTask(list).then((objIdMap) => {
+                        //* objIdMap maps each secID to the object id.
+                        //* produce simulate task. bind ready condition with the corresponding object id
+                        return insertSimulateTask(list, objIdMap);
+                    }).then(() => {
+                        //* update produce date
+                        return updateLastSyncDate(list);
+                    });
+                }).then(() =>{
+                    console.log('produce task finished');
+                    lastProducedate = today;
+                }, (err) => {
+                    console.log('find error: ', err);
+                    process.exit();
+                }).then(loop);
+            }
+            else loop();
+        }, config.produceInterval)
+    };
+    loop();
+}
+
+function getTaskList() {
+    return Promise.all([getSecID(), getLastSyncDate()]).then((r) => {
+        var allList = r[0];
+        var curList = r[1].reduce((pre, cur) => {
+            pre[cur.secID] = cur.lastSyncDate;
+            return pre;
+        }, {});
+        /**
+         * new task will be created:
+         * 1\ secID not exist in current lastSyncDateCol.
+         * 2\ or, last syncdate is before today.
+         */
+        var today = time.today();
+        var updateList = allList.filter((secID) => {
+            return !(secID in curList) || time.isAfter(today, curList[secID]);
+        });
+        //* notice: as all stock secID stored in Azure are lower case. make sure getSecID() return lowercase secID array.
+        return updateList;
+    });
+}
+
+function getLastSyncDate() {
+    return lastSyncDateCol.find({});
+}
+
+/**
+ * produce stock update task. return secID-objectId map.
+ */
+function insertUpdateTask(list) {
+    var docs = list.map((secID) => {
+        return {
+            task: {
+                type: 'updateStockData',
+                pack: secID
+            },
+            status: taskStatus.ready,
+            log: [{
+                desc: 'build new ready task',
+                time: time.format(time.now()),
+                err: null
+            }]
+        };
+    });
+    return taskCol.insertMany(docs).then((r) => {
+        var objIdMap = r.ops.reduce((pre, cur) => {
+            pre[cur.task.pack] = cur._id.toString();
+            return pre;
+        }, {});
+        return objIdMap;
+    });
+}
+
+/**
+ * produce simulate task. associate task ready condtion with the corresponding object id
+ */
+function insertSimulateTask(list, objIdMap) {
+    var docs = list.map((secID) => {
+        return {
+            task: { type: 'simulate', pack: {tradeplanId: 'MA1060', secID: secID } }, // TODO merge more trade plans
+            status: taskStatus.wait,
+            readyCondition: {
+                type: 'success',
+                pack: objIdMap[secID]
+            },
+            log: [{
+                desc: 'build new waiting task',
+                time: time.format(time.now()),
+                err: null
+            }]
+        };
+    });
+    return taskCol.insertMany(docs);
+}
+
+/**
+ * update the produce date to today.
+ */
+function updateLastSyncDate(list) {
+    var today = time.format(today, 'YYYYMMDD');
+    var docs = list.map((secID) => {
+        return {
+            'filter': { secID: secID },
+            'update': { $set: { lastSyncDate: today } }
+        };
+    });
+    return lastSyncDateCol.upsertMany(docs);
+}
+
 function run() {
     createServer();
     removeTimeOutTask();
     checkWaitingTask();
+    producer();
 };
 
 run();

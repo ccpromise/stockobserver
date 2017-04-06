@@ -17,12 +17,10 @@ exports.tradeplan = {
     isValid: function (arg, verb) {
         return verb === 'findOne' && dbOperation.isValid(verb, arg);
     },
-    run: function (arg, verb, res) {
+    run: function (arg, verb) {
         if(!exports.tradeplan.isValid(arg, verb)) {
-            res.writeHead(400);
-            res.end();
-            return Promise.resolve();
+            return Promise.reject(400);
         }
-        return dbOperation.run(tradeplanCol, arg, verb, res);
+        return dbOperation.run(tradeplanCol, arg, verb);
     }
 }
