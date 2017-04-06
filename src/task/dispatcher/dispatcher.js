@@ -72,7 +72,6 @@ function createServer() {
                  var data = JSON.parse(content);
              }
              catch (err) {
-                 console.log('wrong json format');
                  res.writeHead(400, headers);
                  res.end();
                  return;
@@ -114,9 +113,7 @@ function removeTimeOutTask() {
                     'time': time.format(time.now()),
                     'err': new Error('task time out')
                 }}
-            }).then((r) => {
-                console.log('remove timeout task, #: ', r.result.nModified);
-            }, (err) => {
+            }).catch((err) => {
                 console.log('fail to remove task: ', err);
                 process.exit();
             }).then(loop);
@@ -149,7 +146,6 @@ function checkWaitingTask() {
                 }, config.parallelN).then(() => { return readyTaskId; });
             }).then((readyTaskId) => {
                 //* update status from wait to ready
-                console.log('find waiting task ready: ', readyTaskId);
                 return readyTaskId.length === 0
                 ? Promise.resolve()
                 : taskCol.updateMany(readyTaskId.map((id) => {
@@ -165,10 +161,8 @@ function checkWaitingTask() {
                         }
                     }
                 }));
-            }).then((r) => {
-                console.log('check waiting task finished');
-            }, (err) => {
-                console.log('find error: ', err);
+            }).catch((err) => {
+                console.log('fail to check waiting task: ', err);
                 process.exit();
             }).then(loop);
         }, config.checkWaitingTaskInterval)
@@ -202,7 +196,7 @@ function producer() {
                     console.log('produce task finished');
                     lastProducedate = today;
                 }, (err) => {
-                    console.log('find error: ', err);
+                    console.log('fail to produce task: ', err);
                     process.exit();
                 }).then(loop);
             }
