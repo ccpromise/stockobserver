@@ -184,7 +184,7 @@ function producer() {
             var today = time.today();
             var produceTime = time.today(config.produceTime);
             if(time.isAfter(time.now(), produceTime) && time.isAfter(today, lastProducedate)) {
-                console.log('start to produce task...');
+                console.log(time.format(today, 'YYYYMMDD'), ': start to produce task...');
                 //* find secID list to produce task
                 return getTaskList().then((list) => {
                     console.log('# of stocks to update: ', list.length);
@@ -290,7 +290,7 @@ function insertSimulateTask(list, objIdMap) {
  * update the produce date to today.
  */
 function updateLastSyncDate(list) {
-    var today = time.format(today, 'YYYYMMDD');
+    var today = time.format(time.today(), 'YYYYMMDD');
     var docs = list.map((secID) => {
         return {
             'filter': { secID: secID },
