@@ -11,3 +11,5 @@ exports.database = require('./database');
 exports.azureStorage = require('./azureStorage');
 exports.refReplace = require('./refReplace');
 exports.replaceObjId = require('./replaceObjId');
+exports.HttpPack = require('./HttpPack');
+exports.error = require('./error');

@@ -13,6 +13,8 @@ const utility = require('../../utility');
 const time = utility.time;
 const async = utility.async;
 const azure = utility.azureStorage;
+const HttpPack = utility.HttpPack;
+const HttpError = utility.error.HttpError;
 const taskStatus = require('../../constants').taskStatus;
 const checkReadyCondition = require('./condition/checkReadyCondition');
 const getSecID = require('../../datasrc/wmcloud').getSecID;
@@ -42,57 +44,45 @@ const pathMap = {
  */
 function createServer() {
     var server = http.createServer((req, res) => {
-        //* preflight request
-         if(req.headers['access-control-request-method']) {
-             res.writeHead(200, {
-                 'Access-Control-Allow-Origin': req.headers.origin,
-                 'Access-Control-Allow-Headers': req.headers['access-control-request-headers'],
-                 'Access-Control-Allow-Method': req.headers['access-control-request-method']
-             });
-             res.end();
-             return;
-         }
-         var path = url.parse(req.url).pathname;
-         //* invalid path
-         if(!(path in pathMap)) {
-             res.writeHead(400);
-             res.end();
-             return;
-         }
-         var verb = req.headers.verb;
-         var body = [];
-         req.on('data', (chunk) => body.push(chunk));
-         req.on('end', () => {
-             var headers = { 'Content-type': 'application/json' };
-             if(req.headers.origin !== undefined) {
-                 headers['Access-Control-Allow-Origin'] = req.headers.origin;
-             }
-             var content = Buffer.concat(body).toString();
-             try {
-                 var data = JSON.parse(content);
-             }
-             catch (err) {
-                 res.writeHead(400, headers);
-                 res.end();
-                 return;
-             }
-             //* check validity and call corresponding http handler
-             var handler = pathMap[path];
-             if(!handler.isValid(data, verb)) {
-                 res.writeHead(400, headers);
-                 res.end();
-                 return;
-             }
-
-             handler.run(data, verb).then((r) => {
-                 res.writeHead(200, headers);
-                 res.end(JSON.stringify(r));
-             }).catch((err) => {
-                 var code = err === 400 ? 400 : 500;
-                 res.writeHead(code, headers);
-                 res.end();
-             })
-         });
+        var httpPack = new HttpPack(req, res);
+        if(httpPack.getReqHeader('access-control-request-method') !== undefined) {
+            httpPack.setResHeader('access-control-allow-origin', httpPack.getReqHeader('origin'));
+            httpPack.setResHeader('access-control-allow-headers', httpPack.getReqHeader('access-control-request-headers'));
+            httpPack.setResHeader('access-control-allow-method', httpPack.getReqHeader('access-control-request-method'));
+            httpPack.status = 200; //write only
+            httpPack.send();
+            return;
+        }
+        if(httpPack.getReqHeader('origin') !== undefined) {
+            httpPack.setResHeader('access-control-allow-origin', httpPack.getReqHeader('origin'));
+        }
+        var path = httpPack.reqPath; // readonly
+        if(!(path in pathMap)) {
+            httpPack.resBody = 'path not found'; // write only
+            httpPack.status = 404;
+            httpPack.send();
+            return;
+        }
+        httpPack.reqBody().then((body) => {
+            // all http request body is json type
+            var data = JSON.parse(body.toString());
+            var handler = pathMap[path];
+            var verb = httpPack.getReqHeader('verb');
+            if(!handler.isValid(data, verb)) return Promise.reject(new Error('invalid data and verb'));
+            return handler.run(data, verb).then((r) => {
+                httpPack.resBody = r;
+                httpPack.status = 200;
+                httpPack.send();
+            }).catch((err) => {
+                httpPack.resBody = err.message;
+                httpPack.status = err instanceof HttpError ? err.statusCode : 500;
+                httpPack.send();
+            })
+        }).catch((err) => {
+            httpPack.resBody = err.message;
+            httpPack.status = 400;
+            httpPack.send();
+        })
     });
     server.listen(config.dispatcherPort, config.dispatcherHost);
     console.log('start to listen on ', config.dispatcherHost, ': ', config.dispatcherPort);

@@ -28,6 +28,7 @@ function run() {
                 else return execute(task).then(report).then(() => { i = 0; });
             }).catch((err) => {
                 console.log('find error in consumer: ', err);
+                process.exit();
             }).then(iter);
         }, intervals[i]);
     };

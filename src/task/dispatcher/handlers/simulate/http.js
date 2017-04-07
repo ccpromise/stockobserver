@@ -8,7 +8,9 @@ const simulateCol = db.simulateCol;
 const simdateCol = db.simdateCol;
 const dbOperation = require('../dbOperation');
 const itemsPerPage = require('../../../../config').itemsPerPage;
-const validate = require('../../../../utility').validate;
+const utility = require('../../../../utility');
+const validate = utility.validate;
+const HttpError = utility.error.HttpError;
 
 /**
  * http request sent to simulateCol
@@ -19,14 +21,14 @@ exports.simulate = {
     isValid: function (arg, verb) {
         if(verb === 'getMul') {
             return validate.isObj(arg) && validate.isObj(arg.filter)
-            && validate.isPosInt(arg.pageNum) && validate.isPosInt(arg.pageSize) && validate.isUndefinedOrObj(arg.sort);
+            && validate.isInt(arg.pageNum) && validate.isInt(arg.pageSize) && validate.isUndefinedOrObj(arg.sort);
         }
         return (verb === 'find' || verb === 'updateMany' || verb === 'insert')
         && dbOperation.isValid(verb, arg);
     },
     run: function (arg, verb) {
         if(!exports.simulate.isValid(arg, verb)) {
-            return Promise.reject(400);
+            return Promise.reject(new HttpError('invalid data and verb', 400));
         }
         if(verb === 'getMul') {
             return getMul(arg);
@@ -49,7 +51,7 @@ exports.simdate = {
     },
     run: function(arg, verb) {
         if(!exports.simdate.isValid(arg, verb)) {
-            return Promise.reject(400);
+            return Promise.reject(new HttpError('invalid data and verb', 400));
         }
         return dbOperation.run(simdateCol, arg, verb);
     }
@@ -69,9 +71,9 @@ function getMul(arg) {
             pageNum: pageNum,
             pageSize: pageSize,
             total: total,
+            data: []
         };
         if(pageNum === 0) {
-            ret.data = [];
             return ret;
         }
         return simulateCol.findPagination(filter, pageNum, pageSize, sort).then((r) => {

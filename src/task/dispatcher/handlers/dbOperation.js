@@ -2,6 +2,7 @@
 const utility = require('../../../utility');
 const replaceObjId = utility.replaceObjId;
 const validate = utility.validate;
+const HttpError = utility.error.HttpError;
 
 const verbMap = {
     'find': {
@@ -64,7 +65,7 @@ exports.isValid = function(verb, arg) {
  */
 exports.run = function(col, arg, verb) {
     if(!exports.isValid(verb, arg)) {
-        return Promise.reject(400);
+        return Promise.reject(new HttpError('invalid data and verb', 400));
     }
     arg = replaceObjId(arg);
     return verbMap[verb].run(col, arg);

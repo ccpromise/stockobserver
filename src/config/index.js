@@ -54,8 +54,8 @@ exports.maxTaskDuration = 30000;
  */
 exports.produceInterval = 5000;
 exports.produceTime = {
-    hour: 0,
-    minute: 0
+    hour: 7,
+    minute: 30
 }
 
 /**

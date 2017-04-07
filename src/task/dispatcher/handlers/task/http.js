@@ -14,6 +14,7 @@ const dbOperation = require('../dbOperation');
 const utility = require('../../../../utility');
 const time = utility.time;
 const validate = utility.validate;
+const HttpError = utility.error.HttpError;
 const taskStatus = require('../../../../constants').taskStatus;
 
 /**
@@ -33,7 +34,7 @@ exports.task = {
     },
     run: function(arg, verb) {
         if(!exports.task.isValid(arg, verb)) {
-            return Promise.reject(400);
+            return Promise.reject(new HttpError('invalid data and verb', 400));
         }
         if(verb === 'dispatch') {
             return dispatch();
@@ -66,12 +67,10 @@ function report(result) {
             }, {
                 $set: { status: result.status },
                 $push: { log: result.log }
-            }).then(() => {
-                return null;
             });
         }
         else {
-            return Promise.reject(400);
+            return Promise.reject(new HttpError('invalid result', 400));
         }
     });
 }

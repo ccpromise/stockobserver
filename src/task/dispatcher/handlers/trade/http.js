@@ -7,6 +7,7 @@ const dbOperation = require('../dbOperation');
 const map = {
     'findOne': true
 }
+const HttpError = require('../../../../utility').error.HttpError;
 
 /**
  * http request sent to tradeplanCol
@@ -19,7 +20,7 @@ exports.tradeplan = {
     },
     run: function (arg, verb) {
         if(!exports.tradeplan.isValid(arg, verb)) {
-            return Promise.reject(400);
+            return Promise.reject(new HttpError('invalid data and verb', 400));
         }
         return dbOperation.run(tradeplanCol, arg, verb);
     }
