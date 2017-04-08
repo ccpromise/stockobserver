@@ -68,7 +68,7 @@ function createServer() {
             var data = JSON.parse(body.toString());
             var handler = pathMap[path];
             var verb = httpPack.getReqHeader('verb');
-            if(!handler.isValid(data, verb)) return Promise.reject(new Error('invalid data and verb'));
+            if(!handler.isValid(data, verb)) return Promise.reject(new Error('invalid data and verb' + data + ' ' + verb));
             return handler.run(data, verb).then((r) => {
                 httpPack.resBody = r;
                 httpPack.status = 200;

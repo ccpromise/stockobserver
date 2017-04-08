@@ -23,12 +23,12 @@ exports.simulate = {
             return validate.isObj(arg) && validate.isObj(arg.filter)
             && validate.isInt(arg.pageNum) && validate.isInt(arg.pageSize) && validate.isUndefinedOrObj(arg.sort);
         }
-        return (verb === 'find' || verb === 'updateMany' || verb === 'insert')
+        return (verb === 'find' || verb === 'updateMany' || verb === 'insertMany')
         && dbOperation.isValid(verb, arg);
     },
     run: function (arg, verb) {
         if(!exports.simulate.isValid(arg, verb)) {
-            return Promise.reject(new HttpError('invalid data and verb', 400));
+            return Promise.reject(new HttpError('invalid data and verb ' + arg + ' ' + verb, 400));
         }
         if(verb === 'getMul') {
             return getMul(arg);
@@ -51,7 +51,7 @@ exports.simdate = {
     },
     run: function(arg, verb) {
         if(!exports.simdate.isValid(arg, verb)) {
-            return Promise.reject(new HttpError('invalid data and verb', 400));
+            return Promise.reject(new HttpError('invalid data and verb ' + arg + ' ' + verb, 400));
         }
         return dbOperation.run(simdateCol, arg, verb);
     }
@@ -65,7 +65,7 @@ function getMul(arg) {
 
     return simulateCol.count(filter).then((r) => {
         var total = r;
-        var totalPage = Math.floor(total / pageSize);
+        var totalPage = Math.ceil(total / pageSize);
         pageNum = Math.min(pageNum, totalPage);
         var ret = {
             pageNum: pageNum,

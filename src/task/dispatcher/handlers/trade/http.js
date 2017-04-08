@@ -20,7 +20,7 @@ exports.tradeplan = {
     },
     run: function (arg, verb) {
         if(!exports.tradeplan.isValid(arg, verb)) {
-            return Promise.reject(new HttpError('invalid data and verb', 400));
+            return Promise.reject(new HttpError('invalid data and verb ' + arg + ' ' + verb, 400));
         }
         return dbOperation.run(tradeplanCol, arg, verb);
     }

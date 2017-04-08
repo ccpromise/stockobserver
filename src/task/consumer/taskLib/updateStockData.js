@@ -1,12 +1,12 @@
 
-var utility = require('../../../utility');
-var config = require('../../../config');
-var time = utility.time;
-var azure = utility.azureStorage(config.azureUsr);
-var validate = utility.validate;
-var object = utility.object;
-var getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
-var container = config.stockdataContainer;
+const utility = require('../../../utility');
+const config = require('../../../config');
+const time = utility.time;
+const azure = utility.azureStorage(config.azureUsr);
+const validate = utility.validate;
+const object = utility.object;
+const getHistoryData = require('../../../datasrc/wmcloud').getHistoryData;
+const container = config.stockdataContainer;
 
 exports.run = function(secID) {
     return azure.createContainerIfNotExists(container).then(() => {

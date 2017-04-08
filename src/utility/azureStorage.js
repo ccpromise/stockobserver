@@ -133,6 +133,6 @@ module.exports = function(azureUsr) {
             }, 50);
         }
     }
-    
+
     return exports;
 };

@@ -24,5 +24,5 @@ exports.simdateCol = db.getCollection('simdateCol', {
     '_id': true,
     'tradeplanId': true,
     'secID': true,
-    'lastSimDate': true
+    'lastSimTs': true
 })

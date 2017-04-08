@@ -62,7 +62,6 @@ function pvdID(ldp) {
  */
 var pvdCache = new Cache(cacheCapacity, true);
 function makePvd(ldp) {
-    console.log(pvdCache.size()); // TODO for test
     return Promise.resolve().then(() => {
         if(ldp instanceof DataPvdLib.DataPvd) return ldp;
         if(!checkldp(ldp)) throw new Error('invalid literal dp');
@@ -72,7 +71,7 @@ function makePvd(ldp) {
         if(ldp.type in cachePvdList) {
             pvdCache.set(id, promise);
             var refPvdIDs = pvdMap[ldp.type].refPvdIDs(id);
-            promise.then(() => {
+            return promise.then((dp) => {
                 //* if this pvd refers to other cache which are also in cache, then bind a reference between them.
                 //* when other cache is removed, this pvd cache should remove too.
                 for(let refID of refPvdIDs) {
@@ -80,6 +79,7 @@ function makePvd(ldp) {
                         pvdCache.addReference(id, refID);
                     }
                 }
+                return dp;
             })
         }
         return promise;
@@ -89,4 +89,3 @@ function makePvd(ldp) {
 exports.checkldp= checkldp;
 exports.pvdID = pvdID;
 exports.makePvd = makePvd;
-//exports.cache = pvdCache; // TODO for test: /stockobserver/tests/dataPVdGenerator/makeDataPvd.js, try that case first, then remove this line.

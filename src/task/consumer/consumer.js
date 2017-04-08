@@ -69,6 +69,7 @@ function execute(doc) {
         }
     }, (err) => {
         console.log('task fail');
+        console.log(err);
         return {
             _id: doc._id,
             lastProcessedTs: doc.lastProcessedTs,
