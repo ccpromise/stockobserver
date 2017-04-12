@@ -1,2 +1,0 @@
-
-exports.loadStockData = require('./loadStockData');
