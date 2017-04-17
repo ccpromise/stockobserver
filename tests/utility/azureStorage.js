@@ -1,12 +1,18 @@
 
-var utility = require('../../src/utility');
-var usr = require('../../src/config').azureUsr;
+var config = require('../../src/node_modules/config');
+var utility = require('../../src/node_modules/utility');
+var usr = require('../../src/node_modules/config').azureUsr;
 var azure = utility.azureStorage(usr);
+var fs = require('fs');
+var path = require('path');
 
-azure.deleteContainer('tmp').then((r) => {
-    console.log('done');
-});
-azure.deleteBlob('stockdata', '.DS_Store').then((r) =>console.log(r));
+azure.getBlobToFile(config.stockdataContainer, '000001.xshe.json', path.join(config.stockDataDir, '/000001.xshe.json')).catch((err) => {
+    console.log('err: ', err);
+})
+
+// azure.getBlobToFile('stockdata', '000001.xshe.json', './tmp/').catch((err) => {
+//     console.log('find err: ', err);
+// })
 //azure.deleteContainer('stockdata').catch(console.log);
 //console.log(utility.azureStorage({}));
 

@@ -1,15 +1,15 @@
 
-var Database = require('../../src/utility/database');
+var Database = require('../../src/node_modules/utility/node_modules/database');
 
 var db = new Database('mongodb://127.0.0.1:27017');
 var col1 = db.getCollection('test', {'name': true});
 
 col1.remove({}).then( (r) => {
     col1.insert({name: 'cc', age: 25}).then(() => {
-        col1.find({name: 'cc'}).then((r) => {
+        col1.upsert({id: '58f4740708ec2409ff5db372'}, { $set: {name: 'cy'}}).then((r) => {
             console.log(r);
         }).then(() => {
-            col1.find({name: 'ccc'}).then((r) => {
+            col1.find({}).then((r) => {
                 console.log(r);
             })
         })

@@ -1,4 +1,6 @@
 
-var getSecID = require('../../../src/datasrc/wmcloud').getSecID;
+var getSecID = require('../../../src/node_modules/datasrc').wmcloud.getSecID;
 
-getSecID().then(console.log);
+getSecID().then((r) => {
+    console.log(r.length);
+});

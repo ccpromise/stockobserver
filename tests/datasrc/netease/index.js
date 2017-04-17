@@ -1,4 +1,4 @@
 
-var netease = require('../../../src/datasrc/netease');
+var netease = require('../../../src/node_modules/datasrc/node_modules/netease');
 
-netease.getStockData().then((data) => console.log(data)).catch(err => console.log(err));
+netease.getRtStockData().then((data) => console.log(data.list.length)).catch(err => console.log(err));
