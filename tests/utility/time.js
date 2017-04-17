@@ -1,2 +1,2 @@
-
-time.nextDay(time.createDate('19910101'));
+var time = require('../../src/node_modules/utility').time;
+console.log(time.getDateTs(time.today()));
