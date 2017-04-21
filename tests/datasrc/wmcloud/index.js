@@ -15,9 +15,8 @@ wmcloud.getHistoryData('000002.xshe').then((data) => {
     //.then(() => console.log('done'))
     //.catch(err => console.error(err));
 
-var getRtData = require('../../../src/node_modules/datasrc').wmcloud.getSecHalt;
+var fn = require('../../../src/node_modules/datasrc').wmcloud.getHistoryData;
 
-getRtData('20170417').then((r) => console.log(r)).catch((err) => {
-    console.err('err!');
-    console.err(err);
+fn('000001.xshe', '20170301', '20170305').then((r) => console.log(r)).catch((err) => {
+    console.err('err!', err);
 })
