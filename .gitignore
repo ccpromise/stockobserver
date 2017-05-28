@@ -5,4 +5,4 @@
 *.txt
 *.csv
 *.log
-/dist
+**/dist
